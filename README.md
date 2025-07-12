@@ -11,26 +11,13 @@ A lightweight heavy-flavor analysis package for STAR **PicoDst** data.
 
 ## Building
 ```bash
-mkdir build && cd build
-cmake ..
-make -j4
+cons
 ```
-Ensure `$ROOTSYS` is set and STAR libraries (`StRoot` and `StPicoDst`) are in your environment (`$STAR`).
 
 ## Running
-Edit or create a text file `pico.list` with full paths to your PicoDst files.
-Run from a ROOT session:
+
 ```C++
 .L macros/runPicoHF.C
 runPicoHF("pico.list", "hfOut.root", 1000000);
 ```
 Histograms will be appended to `hfOut.root`.
-
-## Output objects
-| Maker        | Histograms                             |
-|--------------|----------------------------------------|
-| JPsiMaker    | `hJPsiInvMass`, `hJPsiPtY`             |
-| DMesonMaker  | `hD0Mass`, `hD0PtY`                    |
-| HFEMaker     | `hNPEPt`, `hEoverPvsP`                 |
-
-Use standard ROOT to plot signals after background subtraction / fits.
