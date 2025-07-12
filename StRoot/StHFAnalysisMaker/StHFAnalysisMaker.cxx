@@ -90,7 +90,7 @@ bool StHFAnalysisMaker::goodTrack(const StPicoTrack* t){
 
 float StHFAnalysisMaker::trackBeta(const StPicoTrack* trk) const{
     constexpr float c_light=2.99792458e10; // cm/s
-    int idx=trk->btofPidTraitsIndex();
+    int idx=trk->bTofPidTraitsIndex();
     float beta=std::numeric_limits<float>::quiet_NaN();
     auto picoDst = mPicoDstMaker->picoDst();
     if(idx>=0){
@@ -119,15 +119,17 @@ void StHFAnalysisMaker::runJPsi(){
         if(e1->pMom().Perp()<HFCuts::Track::ptMin) continue;
         for(size_t ib=ia+1; ib<nE; ++ib){
             const auto* e2 = mElectrons[ib];
+            TVector3 p1=e1->pMom(), p2=e2->pMom();
+            TVector3 p=p1+p2; double e=std::sqrt(p1.Mag2()+0.000511*0.000511)+std::sqrt(p2.Mag2()+0.000511*0.000511);
+            double m=std::sqrt(e*e-p.Mag2());
             bool likeSign = (e1->charge()*e2->charge()>=0);
             if(likeSign){
                 hJPsiBkgMass->Fill(m);
                 continue;
             }
-            TVector3 p1=e1->pMom(), p2=e2->pMom();
-            TVector3 p=p1+p2; double e=std::sqrt(p1.Mag2()+0.000511*0.000511)+std::sqrt(p2.Mag2()+0.000511*0.000511);
-            double m=std::sqrt(e*e-p.Mag2()); double pt=p.Perp(); double y=0.5*std::log((e+p.Z())/(e-p.Z()+1e-6));
-            hJPsiMass->Fill(m); hJPsiPtY->Fill(pt,y); hEffMap_JPsi->Fill(pt,y);
+            double pt=p.Perp(); double y=0.5*std::log((e+p.Z())/(e-p.Z()+1e-6));
+            hJPsiMass->Fill(m); 
+            hJPsiPtY->Fill(pt,y); hEffMap_JPsi->Fill(pt,y);
             double phi = std::atan2(p.Y(),p.X());
             double dphiEP = TVector2::Phi_mpi_pi(phi - mPsi2);
             hPhiVsEP_JPsi->Fill(pt,dphiEP);
