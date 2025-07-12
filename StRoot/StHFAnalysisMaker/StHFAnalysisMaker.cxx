@@ -9,6 +9,7 @@
 #include "TH1F.h"
 #include "TH2F.h"
 #include "TProfile.h"
+#include "TStyle.h"
 #include "TCanvas.h"
 #include "TF1.h"
 #include "TVector3.h"
