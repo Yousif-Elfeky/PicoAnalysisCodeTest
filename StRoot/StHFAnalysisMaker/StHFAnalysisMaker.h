@@ -49,12 +49,10 @@ private:
     TH2F* hPhiVsEP_D0   = nullptr;
     TH1F* hED0_DeltaPhi = nullptr;
     TH1F* hEOPInclusive = nullptr;
-    TH2F* hEffMap_JPsi = nullptr;
-    TH2F* hEffMap_D0   = nullptr;
     // v2 profiles
     TProfile* hV2JPsi = nullptr;
     TProfile* hV2D0   = nullptr;
-    
+
     std::vector<const StPicoTrack*> mElectrons, mKplus, mKminus, mPiplus, mPiminus;
     float mPsi2; 
     StEpdEpFinder* mEpFinder;
