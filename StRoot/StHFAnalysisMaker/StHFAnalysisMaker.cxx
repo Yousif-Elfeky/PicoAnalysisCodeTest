@@ -123,8 +123,14 @@ void StHFAnalysisMaker::runJPsi(){
             TVector3 p=p1+p2; double e=std::sqrt(p1.Mag2()+0.000511*0.000511)+std::sqrt(p2.Mag2()+0.000511*0.000511);
             double m=std::sqrt(e*e-p.Mag2());
             bool likeSign = (e1->charge()*e2->charge()>=0);
+            // TOF requirement for both tracks for background
+            bool bothTof = (trackBeta(e1)==trackBeta(e1) && trackBeta(e2)==trackBeta(e2));
             if(likeSign){
-                hJPsiBkgMass->Fill(m);
+                if(bothTof){
+                    // downsample in high-multiplicity events
+                    if(evt && evt->grefMult()>200 && gRandom->Rndm()>0.2) { /*skip*/ }
+                    else hJPsiBkgMass->Fill(m);
+                }
                 continue;
             }
             double pt=p.Perp(); double y=0.5*std::log((e+p.Z())/(e-p.Z()+1e-6));
@@ -170,7 +176,11 @@ void StHFAnalysisMaker::runD0(){
                 TVector3 pp=p->pMom(); double ePi=std::sqrt(pp.Mag2()+mPi2);
                 TVector3 q=pk+pp; double e=eK+ePi; double m2=e*e-q.Mag2(); if(m2<=0) continue;
                 double m=std::sqrt(m2); if(m<1.6||m>2.1) continue;
-                hD0BkgMass->Fill(m);
+                // background: require TOF on both tracks
+                if(trackBeta(k)==trackBeta(k) && trackBeta(p)==trackBeta(p)){
+                    if(evt && evt->grefMult()>200 && gRandom->Rndm()>0.2) {/*skip*/}
+                    else hD0BkgMass->Fill(m);
+                }
             }
         }
     };
