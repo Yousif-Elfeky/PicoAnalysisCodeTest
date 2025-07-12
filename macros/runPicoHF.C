@@ -1,4 +1,5 @@
 #include <TSystem>
+#include "StPicoArrays.h"
 
 class StMaker;
 class StChain;
