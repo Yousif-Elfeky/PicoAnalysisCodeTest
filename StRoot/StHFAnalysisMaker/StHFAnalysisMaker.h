@@ -38,10 +38,12 @@ private:
     std::string     mOutFile = "hfOut.root";
 
     TH1F* hJPsiMass = nullptr; TH2F* hJPsiPtY = nullptr;
-    TH1F* hJPsiBkgMass = nullptr;  ///< like-sign background
+    TH1F* hJPsiBkgMass1 = nullptr; TH1F* hJPsiBkgMass2 = nullptr; 
+    TH2F* hJPsiMassVsPt1=nullptr,*hJPsiMassVsPt2=nullptr,*hJPsiMassVsPtULS=nullptr;
     TH1F* hD0Mass   = nullptr; TH2F* hD0PtY  = nullptr;
-    TH1F* hD0BkgMass = nullptr;    ///< same-charge background
+    TH1F* hD0BkgMass1 = nullptr; TH1F* hD0BkgMass2 = nullptr;
     TH1F* hNPEPt    = nullptr; TH2F* hEoverPvsP = nullptr;
+    TH2F *hD0MassVsPt1=nullptr,*hD0MassVsPt2=nullptr,*hD0MassVsPtULS=nullptr;
 
     TH2F* hPhiVsEP_JPsi = nullptr;
     TH2F* hPhiVsEP_D0   = nullptr;
@@ -52,9 +54,7 @@ private:
     // v2 profiles
     TProfile* hV2JPsi = nullptr;
     TProfile* hV2D0   = nullptr;
-    TH1F *hMee_LSneg=nullptr,*hMee_LSpos=nullptr,*hMee_ULS=nullptr;
-    TF1 *fJPsiSig=nullptr,*fJPsiBkg=nullptr,*fD0Sig=nullptr,*fD0Bkg=nullptr;
-    TH2F *hMeePt_LSneg=nullptr,*hMeePt_LSpos=nullptr,*hMeePt_ULS=nullptr;
+    
     std::vector<const StPicoTrack*> mElectrons, mKplus, mKminus, mPiplus, mPiminus;
     float mPsi2; 
     StEpdEpFinder* mEpFinder;

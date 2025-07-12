@@ -42,8 +42,11 @@ Int_t StHFAnalysisMaker::Init(){
     hD0Mass   = new TH1F("hD0Mass","K#pi inv mass;M [GeV]",1000,1.6,2.1);
     hD0PtY    = new TH2F("hD0PtY","D^{0} pT vs y;pT;y",1000,0,10,1000,-HFCuts::PID::nSigmaE,HFCuts::PID::nSigmaE);
     // background mass spectra
-    hJPsiBkgMass = new TH1F("hJPsiBkgMass","like-sign e^{±}e^{±} mass;M [GeV]",1000,2.0,4.0);
-    hD0BkgMass   = new TH1F("hD0BkgMass","same-charge K#pi mass;M [GeV]",1000,1.6,2.1);
+    hJPsiBkgMass1 = new TH1F("hJPsiBkgMass1","like-sign e^{+}e^{+} mass;M [GeV]",1000,2.0,4.0);
+    hJPsiBkgMass2 = new TH1F("hJPsiBkgMass2","like-sign e^{-}e^{-} mass;M [GeV]",1000,2.0,4.0);
+    hD0BkgMass1   = new TH1F("hD0BkgMass1","same-charge K+#pi^+ mass;M [GeV]",1000,1.6,2.1);
+    hD0BkgMass2   = new TH1F("hD0BkgMass2","same-charge K-#pi^- mass;M [GeV]",1000,1.6,2.1);
+
     hNPEPt    = new TH1F("hNPEPt","NPE pT;pT",1000,0,10);
     hEoverPvsP= new TH2F("hEoverPvsP","E/p vs p;p;E/p",1000,0,10,1000,0,2);
 
@@ -57,18 +60,14 @@ Int_t StHFAnalysisMaker::Init(){
     // v2 profiles (unscaled)
     hV2JPsi = new TProfile("hV2JPsi","J/#psi #LTcos2#GT vs p_{T};p_{T};#LTcos2#GT",50,0,10);
     hV2D0   = new TProfile("hV2D0","D^{0} #LTcos2#GT vs p_{T};p_{T};#LTcos2#GT",50,0,10);
-    // dielectron like/unlike-sign spectra
-    hMee_LSneg  = new TH1F("hMee_LSneg","e^{-}e^{-} mass;M [GeV]",1000,0,4);
-    hMee_LSpos  = new TH1F("hMee_LSpos","e^{+}e^{+} mass;M [GeV]",1000,0,4);
-    hMee_ULS    = new TH1F("hMee_ULS","e^{+}e^{-} mass;M [GeV]",1000,0,4);
-    hMeePt_LSneg= new TH2F("hMeePt_LSneg","e^{-}e^{-} mass vs p_{T};M;p_{T}",1000,0,4,1000,0,10);
-    hMeePt_LSpos= new TH2F("hMeePt_LSpos","e^{+}e^{+} mass vs p_{T};M;p_{T}",1000,0,4,1000,0,10);
-    hMeePt_ULS  = new TH2F("hMeePt_ULS","e^{+}e^{-} mass vs p_{T};M;p_{T}",1000,0,4,1000,0,10);
-    // simple Gaussian+poly fits (initialised here; parameters set during Fit())
-    fJPsiSig = new TF1("fJPsiSig","gaus",2.9,3.3);
-    fJPsiBkg = new TF1("fJPsiBkg","pol2",2.0,4.0);
-    fD0Sig   = new TF1("fD0Sig","gaus",1.82,1.92);
-    fD0Bkg   = new TF1("fD0Bkg","pol2",1.6,2.1);
+    // electron, kaion, poin like/unlike-sign spectra
+    hJPsiMassVsPt1= new TH2F("hJPsiMassVsPt1","e^{+}e^{+} mass vs p_{T};M;p_{T}",1000,0,4,1000,0,10);
+    hJPsiMassVsPt2= new TH2F("hJPsiMassVsPt2","e^{-}e^{-} mass vs p_{T};M;p_{T}",1000,0,4,1000,0,10);
+    hJPsiMassVsPtULS  = new TH2F("hJPsiMassVsPtULS","e^{+}e^{-} mass vs p_{T};M;p_{T}",1000,0,4,1000,0,10);
+    hD0MassVsPt1= new TH2F("hD0MassVsPt1","K^{+}#pi^{+} mass vs p_{T};M;p_{T}",1000,0,4,1000,0,10);
+    hD0MassVsPt2= new TH2F("hD0MassVsPt2","K^{-}#pi^{-} mass vs p_{T};M;p_{T}",1000,0,4,1000,0,10);
+    hD0MassVsPtULS  = new TH2F("hD0MassVsPtULS","K^{+}#pi^{-} mass vs p_{T};M;p_{T}",1000,0,4,1000,0,10);   
+    //Event QA 
     hRefMultVz    = new TH2F("hRefMultVz","gRefMult vs Vz;Vz (cm);gRefMult",1000,-60,60,100,0,1000);
     mPsi2 = 0.f;
     mEpFinder = new StEpdEpFinder(10);
@@ -113,89 +112,41 @@ float StHFAnalysisMaker::trackBeta(const StPicoTrack* trk) const{
     return beta;
 }
 
-void StHFAnalysisMaker::runJPsi(){
-    const auto *evt = mPicoDstMaker->picoDst()->event();
-    const size_t nE = mElectrons.size();
-    for(size_t ia=0; ia<nE; ++ia){
-        const auto* e1 = mElectrons[ia];
-        if(e1->pMom().Perp()<HFCuts::Track::ptMin) continue;
-        for(size_t ib=ia+1; ib<nE; ++ib){
-            const auto* e2 = mElectrons[ib];
-            TVector3 p1=e1->pMom(), p2=e2->pMom();
-            TVector3 p=p1+p2; double e=std::sqrt(p1.Mag2()+0.000511*0.000511)+std::sqrt(p2.Mag2()+0.000511*0.000511);
-            double m=std::sqrt(e*e-p.Mag2());
-            bool likeSign = (e1->charge()*e2->charge()>=0);
-            // TOF requirement for both tracks for background
-            bool bothTof = (trackBeta(e1)==trackBeta(e1) && trackBeta(e2)==trackBeta(e2));
-            if(likeSign){
-                if(bothTof){
-                    // downsample in high-multiplicity events
-                    if(evt && evt->grefMult()>200 && gRandom->Rndm()>0.2) { /*skip*/ }
-                    else hJPsiBkgMass->Fill(m);
-                }
-                continue;
-            }
-            double pt=p.Perp(); double y=0.5*std::log((e+p.Z())/(e-p.Z()+1e-6));
-            hJPsiMass->Fill(m); 
-            hJPsiPtY->Fill(pt,y); hEffMap_JPsi->Fill(pt,y);
-            double phi = std::atan2(p.Y(),p.X());
-            double dphiEP = TVector2::Phi_mpi_pi(phi - mPsi2);
-            hPhiVsEP_JPsi->Fill(pt,dphiEP);
-            hV2JPsi->Fill(pt, std::cos(2*dphiEP));
-        }
-    }
-}
-
+// --- D0 pairing ---
 void StHFAnalysisMaker::runD0(){
-    // --- precompute constants ---
-    const double mK  = 0.493677, mPi = 0.13957;
-    const double mK2=mK*mK, mPi2 = mPi*mPi;
-    const auto &kPlus=mKplus, &kMinus=mKminus, &piPlus=mPiplus, &piMinus=mPiminus;
-    struct D0Cand{ float phi; };
-    std::vector<D0Cand> d0cands; d0cands.reserve((kPlus.size()+kMinus.size())*(piPlus.size()+piMinus.size()));
+    struct KPTrack{ const StPicoTrack* k; const StPicoTrack* p; TLorentzVector lv;};
+    const double mK=0.493677, mPi=0.13957;
+    auto makeLV=[&](const StPicoTrack* tr,double m){TVector3 p=tr->pMom(); return TLorentzVector(p, std::sqrt(p.Mag2()+m*m));};
+    std::vector<const StPicoTrack*> kPlus=mKplus, kMinus=mKminus, piPlus=mPiplus, piMinus=mPiminus;
 
-    auto buildOpp=[&](const std::vector<const StPicoTrack*>& K,const std::vector<const StPicoTrack*>& P){
-        for(const auto* k:K){
-            TVector3 pk=k->pMom(); double eK=std::sqrt(pk.Mag2()+mK2);
-            for(const auto* p:P){
-                if(k==p) continue;
-                TVector3 pp=p->pMom(); double ePi=std::sqrt(pp.Mag2()+mPi2);
-                TVector3 q=pk+pp; double e=eK+ePi; double m2=e*e-q.Mag2(); if(m2<=0) continue;
-                double m=std::sqrt(m2); if(m<1.6||m>2.1) continue;
-                float pt=q.Perp(); float y=0.5*std::log((e+q.Z())/(e-q.Z()+1e-6));
-                hD0Mass->Fill(m); hD0PtY->Fill(pt,y); hEffMap_D0->Fill(pt,y);
-                double dphiEP = TVector2::Phi_mpi_pi(q.Phi() - mPsi2);
-                hPhiVsEP_D0->Fill(pt,dphiEP);
-                 hV2D0->Fill(pt, std::cos(2*dphiEP));
-                d0cands.push_back({static_cast<float>(q.Phi())});
-            }
-        }
-    };
-    auto buildSame=[&](const std::vector<const StPicoTrack*>& K,const std::vector<const StPicoTrack*>& P){
-        for(const auto* k:K){
-            TVector3 pk=k->pMom(); double eK=std::sqrt(pk.Mag2()+mK2);
-            for(const auto* p:P){
-                TVector3 pp=p->pMom(); double ePi=std::sqrt(pp.Mag2()+mPi2);
-                TVector3 q=pk+pp; double e=eK+ePi; double m2=e*e-q.Mag2(); if(m2<=0) continue;
-                double m=std::sqrt(m2); if(m<1.6||m>2.1) continue;
-                // background: require TOF on both tracks
-                if(trackBeta(k)==trackBeta(k) && trackBeta(p)==trackBeta(p)){
-                    const auto *evt = mPicoDstMaker->picoDst()->event();
-                    if(evt && evt->grefMult()>200 && gRandom->Rndm()>0.2) {/*skip*/}
-                    else hD0BkgMass->Fill(m);
+    auto pairLoop=[&](const std::vector<const StPicoTrack*>& K, const std::vector<const StPicoTrack*>& P,
+                      TH1* hM, TH2* hMPt, bool sameCharge){
+        for(size_t i=0;i<K.size();++i){
+            const StPicoTrack* ka = K[i]; TLorentzVector lvK = makeLV(ka,mK);
+            size_t jStart = sameCharge ? i+1 : 0;
+            for(size_t j=jStart;j<P.size();++j){
+                const StPicoTrack* pi = P[j];
+                if(ka==pi) continue; // avoid identical track when same list
+                TLorentzVector lvPi = makeLV(pi,mPi);
+                TLorentzVector pair = lvK + lvPi;
+                double mass=pair.M(); double pt=pair.Pt();
+                if(hM)   hM->Fill(mass);
+                if(hMPt) hMPt->Fill(mass,pt);
+                if(!sameCharge && hPhiVsEP_D0 && hV2D0){
+                    double phi = pair.Phi();
+                    double dphi = TVector2::Phi_mpi_pi(phi - mPsi2);
+                    hPhiVsEP_D0->Fill(pt,dphi);
+                    hV2D0->Fill(pt,std::cos(2*dphi));
                 }
             }
         }
     };
-    buildOpp(kPlus,piMinus); buildOpp(kMinus,piPlus);
-    buildSame(kPlus,piPlus); buildSame(kMinus,piMinus);
-    for(const auto &d:d0cands){
-        for(const auto* e:mElectrons){
-            float dphi=std::fabs(e->pMom().Phi()-d.phi); if(dphi>TMath::Pi()) dphi=2*TMath::Pi()-dphi;
-            hED0_DeltaPhi->Fill(dphi);
-        }
-    }
+
+    pairLoop(kPlus, piPlus,  hD0BkgMass1, hD0MassVsPt1, true);
+    pairLoop(kMinus,piMinus, hD0BkgMass2, hD0MassVsPt2, true);
+    pairLoop(kPlus, piMinus, hD0Mass,     hD0MassVsPtULS, false);
 }
+
 
 void StHFAnalysisMaker::runHFE(){
     auto pico = mPicoDstMaker->picoDst();
@@ -215,6 +166,35 @@ void StHFAnalysisMaker::runHFE(){
             }
         }
     }
+}
+
+// --- Dielectron pairing ---
+void StHFAnalysisMaker::runDielectronPairs(){
+    struct ETrack{const StPicoTrack* tr; TLorentzVector lv;};
+    std::vector<ETrack> plus, minus; plus.reserve(mElectrons.size()); minus.reserve(mElectrons.size());
+    const double me=0.000511; // GeV
+    for(const auto* t: mElectrons){
+        TVector3 p = t->pMom();
+        TLorentzVector lv(p, std::sqrt(p.Mag2()+me*me));
+        ETrack et; et.tr=t; et.lv=lv;
+        if(t->charge()>0) plus.push_back(et); else minus.push_back(et);
+    }
+    auto pairLoop=[&](const std::vector<ETrack>& A,const std::vector<ETrack>& B,
+                      TH1* hM,TH2* hMPt,bool sameList){
+        for(size_t i=0;i<A.size();++i){
+            const TLorentzVector &l1 = A[i].lv;
+            size_t jStart = sameList ? i+1 : 0;
+            for(size_t j=jStart;j<B.size();++j){
+                const TLorentzVector &l2 = B[j].lv;
+                TLorentzVector pr = l1 + l2;
+                if(hM)   hM->Fill(pr.M());
+                if(hMPt) hMPt->Fill(pr.M(), pr.Pt());
+            }
+        }
+    };
+    pairLoop(plus , plus , hJPsiBkgMass1 , hJPsiMassVsPt1 , true);
+    pairLoop(minus, minus, hJPsiBkgMass2 , hJPsiMassVsPt2 , true);
+    pairLoop(plus , minus, hJPsiMass   , hJPsiMassVsPtULS  , false);
 }
 
 Int_t StHFAnalysisMaker::Make(){
@@ -252,7 +232,7 @@ Int_t StHFAnalysisMaker::Make(){
     StEpdEpInfo epInfo = mEpFinder->Results(epdHits, picoEvt->event()->primaryVertex(),0);
     mPsi2 = epInfo.FullPhiWeightedAndShiftedPsi(2);
 
-    runJPsi(); runD0(); runHFE(); runDielectronPairs();
+    runD0(); runHFE(); runDielectronPairs();
     return kStOK;
 }
 
@@ -269,46 +249,17 @@ Int_t StHFAnalysisMaker::Finish(){
     // Ensure we are back in our output file directory
     f->cd();
 
-    TH1* hists[] = {hJPsiMass,hD0Mass,hNPEPt,hEOPInclusive,hMee_LSneg,hMee_LSpos,hMee_ULS,
-                       hJPsiBkgMass,hD0BkgMass};
-    for(auto h: hists) if(h) h->Write("",TObject::kOverwrite);
-    TH2* h2s[] = {hJPsiPtY,hD0PtY,hEoverPvsP,hPhiVsEP_JPsi,hPhiVsEP_D0,hEffMap_JPsi,hEffMap_D0,hRefMultVz,
-                       hMeePt_LSneg,hMeePt_LSpos,hMeePt_ULS};
+    TH1* h1s[] = {hJPsiBkgMass1,hJPsiBkgMass2,hD0BkgMass1,hD0BkgMass2,
+        hD0Mass,hNPEPt,hEOPInclusive};
+    TH2* h2s[] = {hJPsiMassVsPt1,hJPsiMassVsPt2,hJPsiMassVsPtULS,
+        hD0PtY,hD0MassVsPt1,hD0MassVsPt2,hD0MassVsPtULS,
+        hEoverPvsP,hPhiVsEP_D0,hV2D0, hRefMultVz};
+    for(auto h:h1s) if(h) h->Write("",TObject::kOverwrite);
     for(auto h:h2s) if(h) h->Write("",TObject::kOverwrite);
-
     if(hV2JPsi) hV2JPsi->Write();
     if(hV2D0)   hV2D0->Write();
 
     f->Write();
     f->Close();
     return kStOK;
-}
-
-// --- Dielectron pairing ---
-void StHFAnalysisMaker::runDielectronPairs(){
-    struct ETrack{const StPicoTrack* tr; TLorentzVector lv;};
-    std::vector<ETrack> plus, minus; plus.reserve(mElectrons.size()); minus.reserve(mElectrons.size());
-    const double me=0.000511; // GeV
-    for(const auto* t: mElectrons){
-        TVector3 p = t->pMom();
-        TLorentzVector lv(p, std::sqrt(p.Mag2()+me*me));
-        ETrack et; et.tr=t; et.lv=lv;
-        if(t->charge()>0) plus.push_back(et); else minus.push_back(et);
-    }
-    auto pairLoop=[&](const std::vector<ETrack>& A,const std::vector<ETrack>& B,
-                      TH1* hM,TH2* hMPt,bool sameList){
-        for(size_t i=0;i<A.size();++i){
-            const TLorentzVector &l1 = A[i].lv;
-            size_t jStart = sameList ? i+1 : 0;
-            for(size_t j=jStart;j<B.size();++j){
-                const TLorentzVector &l2 = B[j].lv;
-                TLorentzVector pr = l1 + l2;
-                if(hM)   hM->Fill(pr.M());
-                if(hMPt) hMPt->Fill(pr.M(), pr.Pt());
-            }
-        }
-    };
-    pairLoop(minus, minus, hMee_LSneg , hMeePt_LSneg, true);
-    pairLoop(plus , plus , hMee_LSpos , hMeePt_LSpos, true);
-    pairLoop(plus , minus, hMee_ULS   , hMeePt_ULS  , false);
 }
