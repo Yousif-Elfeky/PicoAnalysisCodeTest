@@ -22,12 +22,15 @@ public:
 
 private:
     // ===== internal helpers =====
+    struct Particle {
+        TVector3 pMom;
+        double energy;
+        short charge;
+    };
     bool    passEventCuts();
     bool    goodTrack(const StPicoTrack* t);
 
-    void    runJPsi();
-    void    runD0();
-    void    runHFE();
+
 
     // ===== members =====
     StPicoDstMaker* mPicoDstMaker = nullptr;
@@ -39,8 +42,6 @@ private:
     TH1F* hD0Mass   = nullptr; TH2F* hD0PtY  = nullptr;
     // HFE
     TH1F* hNPEPt    = nullptr; TH2F* hEoverPvsP = nullptr;
-    // Event QA
-    TH2F* hRefMultVz = nullptr;
 
     // ==== Additional observables ====
     // 3) Azimuthal anisotropy placeholders (phi-EP)

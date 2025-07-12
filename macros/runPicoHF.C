@@ -23,18 +23,19 @@ gSystem->Load("StPicoDstMaker");
   gSystem->Load("StHFAnalysisMaker");                                 // your cons-built lib
 
   chain = new StChain("hfChain");
-  auto pico = new StPicoDstMaker(0,list,"PicoDst");
-  auto hf   = new StHFAnalysisMaker("HFMaker");
+  StPicoDstMaker* pico = new StPicoDstMaker(2,list,"picoDstMaker");
+//  StPicoDstMaker* pico = new StPicoDstMaker(2, list, "picoDstMaker");
+  StHFAnalysisMaker* hf   = new StHFAnalysisMaker("HFMaker");
   hf->SetOutFile(out);
   hf->SetPicoDstMaker(pico);
 
   chain->Init();
-  int nEntries = picoDstMaker->chain()->GetEntries();
+  int nEntries = pico->chain()->GetEntries();
   cout<<"Processing "<<nEntries<<" events..."<<endl;
   for (int iEvent = 0; iEvent < nEntries; ++iEvent)
   {
     chain->Clear();
-    if(iEvent && iEvent%1000 == 0) cout<<"... finished processing "<<iEvent<<" events."<<endl;
+    if(iEvent && iEvent%10 == 0) cout<<"... finished processing "<<iEvent<<" events."<<endl;
 
     int iret = chain->Make();
     if (iret)
