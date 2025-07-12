@@ -123,7 +123,7 @@ void StHFAnalysisMaker::runHFE(){
         if(idx>=0){
             const StPicoBEmcPidTraits* bemc = pico->bemcPidTraits(idx);
             if(bemc){
-                float e = bemc->e();
+                float e = bemc->bemcE();
                 if(e>0){
                     float eop = e/p;
                     hEoverPvsP->Fill(p,eop);
