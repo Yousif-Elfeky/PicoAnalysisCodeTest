@@ -137,10 +137,11 @@ void StHFAnalysisMaker::runD0(){
                     if(hD0PtY) hD0PtY->Fill(pt,y);
                     if(hEffMap_D0) hEffMap_D0->Fill(pt,y);
                     if(hPhiVsEP_D0 && hV2D0){
-                    double phi = pair.Phi();
-                    double dphi = TVector2::Phi_mpi_pi(phi - mPsi2);
-                    hPhiVsEP_D0->Fill(pt,dphi);
-                    hV2D0->Fill(pt,std::cos(2*dphi));
+                        double phi = pair.Phi();
+                        double dphi = TVector2::Phi_mpi_pi(phi - mPsi2);
+                        hPhiVsEP_D0->Fill(pt,dphi);
+                        hV2D0->Fill(pt,std::cos(2*dphi));
+                    }
                 }
             }
         }
