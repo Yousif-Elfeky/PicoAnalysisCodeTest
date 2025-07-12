@@ -16,9 +16,9 @@ public:
     void    SetOutFile(const char* fn) { mOutFile = fn; }
     void    SetPicoDstMaker(StPicoDstMaker* mk) { mPicoDstMaker = mk; }
 
-    Int_t   Init()   override;
-    Int_t   Make()   override;
-    Int_t   Finish() override;
+    virtual Int_t Init();
+    virtual Int_t Make();
+    virtual Int_t Finish();
 
 private:
     // ===== internal helpers =====
