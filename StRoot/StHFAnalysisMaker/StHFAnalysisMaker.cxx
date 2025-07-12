@@ -200,3 +200,15 @@ void StHFAnalysisMaker::runDielectronPairs(){
     pairLoop(plus , plus , hMee_LSpos , hMeePt_LSpos, true);
     pairLoop(plus , minus, hMee_ULS   , hMeePt_ULS  , false);
 }
+
+// --- Fit mass histograms for signal & background
+void StHFAnalysisMaker::fitMassPeaks(){
+    if(hJPsiMass && hJPsiMass->GetEntries()>10){
+        hJPsiMass->Fit(fJPsiBkg,"0R");
+        hJPsiMass->Fit(fJPsiSig,"0R+","",2.9,3.3);
+    }
+    if(hD0Mass && hD0Mass->GetEntries()>10){
+        hD0Mass->Fit(fD0Bkg,"0R");
+        hD0Mass->Fit(fD0Sig,"0R+","",1.82,1.92);
+    }
+}

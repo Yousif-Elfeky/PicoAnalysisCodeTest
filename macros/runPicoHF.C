@@ -35,7 +35,7 @@ gSystem->Load("StPicoDstMaker");
   for (int iEvent = 0; iEvent < nEntries; ++iEvent)
   {
     chain->Clear();
-    if(iEvent && iEvent%10 == 0) cout<<"... finished processing "<<iEvent<<" events."<<endl;
+    if(iEvent && iEvent%1000 == 0) cout<<"... finished processing "<<iEvent<<" events."<<endl;
 
     int iret = chain->Make();
     if (iret)
