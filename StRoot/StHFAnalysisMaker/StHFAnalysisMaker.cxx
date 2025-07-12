@@ -132,7 +132,11 @@ void StHFAnalysisMaker::runD0(){
                 double mass=pair.M(); double pt=pair.Pt();
                 if(hM)   hM->Fill(mass);
                 if(hMPt) hMPt->Fill(mass,pt);
-                if(!sameCharge && hPhiVsEP_D0 && hV2D0){
+                if(!sameCharge){
+                    double y = pair.Rapidity();
+                    if(hD0PtY) hD0PtY->Fill(pt,y);
+                    if(hEffMap_D0) hEffMap_D0->Fill(pt,y);
+                    if(hPhiVsEP_D0 && hV2D0){
                     double phi = pair.Phi();
                     double dphi = TVector2::Phi_mpi_pi(phi - mPsi2);
                     hPhiVsEP_D0->Fill(pt,dphi);
@@ -189,6 +193,16 @@ void StHFAnalysisMaker::runDielectronPairs(){
                 TLorentzVector pr = l1 + l2;
                 if(hM)   hM->Fill(pr.M());
                 if(hMPt) hMPt->Fill(pr.M(), pr.Pt());
+                if(!sameList){
+                    double pt = pr.Pt();
+                    double y  = pr.Rapidity();
+                    if(hJPsiPtY) hJPsiPtY->Fill(pt,y);
+                    if(hPhiVsEP_JPsi && hV2JPsi){
+                        double dphi = TVector2::Phi_mpi_pi(pr.Phi()-mPsi2);
+                        hPhiVsEP_JPsi->Fill(pt,dphi);
+                        hV2JPsi->Fill(pt, std::cos(2*dphi));
+                                        }
+                }
             }
         }
     };
@@ -249,11 +263,33 @@ Int_t StHFAnalysisMaker::Finish(){
     // Ensure we are back in our output file directory
     f->cd();
 
-    TH1* h1s[] = {hJPsiBkgMass1,hJPsiBkgMass2,hD0BkgMass1,hD0BkgMass2,
-        hD0Mass,hNPEPt,hEOPInclusive};
-    TH2* h2s[] = {hJPsiMassVsPt1,hJPsiMassVsPt2,hJPsiMassVsPtULS,
-        hD0PtY,hD0MassVsPt1,hD0MassVsPt2,hD0MassVsPtULS,
-        hEoverPvsP,hPhiVsEP_D0, hRefMultVz};
+    TH1* h1s[] = {
+        hJPsiMass,
+        hJPsiBkgMass1,
+        hJPsiBkgMass2,
+        hD0Mass,
+        hD0BkgMass1,
+        hD0BkgMass2,
+        hNPEPt,
+        hEOPInclusive,
+        hED0_DeltaPhi
+    };
+    TH2* h2s[] = {
+        hJPsiMassVsPt1,
+        hJPsiMassVsPt2,
+        hJPsiMassVsPtULS,
+        hJPsiPtY,
+        hPhiVsEP_JPsi,
+        hEffMap_JPsi,
+        hD0PtY,
+        hEffMap_D0,
+        hD0MassVsPt1,
+        hD0MassVsPt2,
+        hD0MassVsPtULS,
+        hEoverPvsP,
+        hPhiVsEP_D0,
+        hRefMultVz
+    };
     for(auto h:h1s) if(h) h->Write("",TObject::kOverwrite);
     for(auto h:h2s) if(h) h->Write("",TObject::kOverwrite);
     if(hV2JPsi) hV2JPsi->Write();
