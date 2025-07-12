@@ -4,7 +4,7 @@
 #include "StMaker.h"
 #include <string>
 #include <vector>
-#include "StEpdEpFinder.h"
+#include "StEpdUtil/StEpdEpFinder.h"
 class StPicoDstMaker;
 class StPicoTrack;
 class TH1F; class TH2F;
