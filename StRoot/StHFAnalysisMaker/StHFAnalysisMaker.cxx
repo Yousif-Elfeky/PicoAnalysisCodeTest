@@ -72,13 +72,13 @@ Int_t StHFAnalysisMaker::Make(){
         TVector3 pMom = t->pMom();
 
         if(std::fabs(t->nSigmaElectron()) < HFCuts::PID::nSigmaE && pMom.Perp() > HFCuts::Track::ptMin){
-            electrons.push_back({pMom, std::sqrt(pMom.Mag2() + 0.000511*0.000511), t->charge()});
+            electrons.push_back(Particle(pMom, std::sqrt(pMom.Mag2() + 0.000511*0.000511), t->charge()));
         }
         if(std::fabs(t->nSigmaKaon()) < HFCuts::PID::nSigmaK){
-            kaons.push_back({pMom, std::sqrt(pMom.Mag2() + 0.493677*0.493677), t->charge()});
+            kaons.push_back(Particle(pMom, std::sqrt(pMom.Mag2() + 0.493677*0.493677), t->charge()));
         }
         if(std::fabs(t->nSigmaPion()) < HFCuts::PID::nSigmaPi){
-            pions.push_back({pMom, std::sqrt(pMom.Mag2() + 0.13957*0.13957), t->charge()});
+            pions.push_back(Particle(pMom, std::sqrt(pMom.Mag2() + 0.13957*0.13957), t->charge()));
         }
     }
 

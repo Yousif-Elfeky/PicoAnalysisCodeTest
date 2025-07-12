@@ -2,6 +2,8 @@
 #define STHFANALYSISMAKER_H
 
 #include "StMaker.h"
+#include "CutsConfig.h"
+#include "TVector3.h"
 #include <string>
 #include <vector>
 class StPicoDstMaker;
@@ -23,9 +25,10 @@ public:
 private:
     // ===== internal helpers =====
     struct Particle {
+        Particle(const TVector3& p, double e, int c) : pMom(p), energy(e), charge(c) {}
         TVector3 pMom;
         double energy;
-        short charge;
+        int charge;
     };
     bool    passEventCuts();
     bool    goodTrack(const StPicoTrack* t);
