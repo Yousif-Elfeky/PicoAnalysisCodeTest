@@ -9,6 +9,7 @@
 #include "TH1F.h"
 #include "TH2F.h"
 #include "TVector3.h"
+#include "TLorentzVector.h"
 #include <cmath>
 #include <iostream>
 
@@ -156,15 +157,16 @@ void StHFAnalysisMaker::runDielectronPairs(){
     for(const auto* t: mElectrons){
         TVector3 p = t->pMom();
         TLorentzVector lv(p, std::sqrt(p.Mag2()+me*me));
-        (t->charge()>0 ? plus : minus).push_back({t, lv});
+        ETrack et; et.tr=t; et.lv=lv;
+        if(t->charge()>0) plus.push_back(et); else minus.push_back(et);
     }
     auto pairLoop=[&](const std::vector<ETrack>& A,const std::vector<ETrack>& B,
                       TH1* hM,TH2* hMPt,bool sameList){
         for(size_t i=0;i<A.size();++i){
-            const TLorentzVector& l1 = A[i].lv;
+            const TLorentzVector &l1 = A[i].lv;
             size_t jStart = sameList ? i+1 : 0;
             for(size_t j=jStart;j<B.size();++j){
-                const TLorentzVector& l2 = B[j].lv;
+                const TLorentzVector &l2 = B[j].lv;
                 TLorentzVector pr = l1 + l2;
                 if(hM)   hM->Fill(pr.M());
                 if(hMPt) hMPt->Fill(pr.M(), pr.Pt());
