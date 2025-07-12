@@ -24,33 +24,33 @@ StHFAnalysisMaker::~StHFAnalysisMaker(){}
 Int_t StHFAnalysisMaker::Init(){
     if(!mPicoDstMaker){LOG_ERROR<<"HFAnalysis: set PicoDstMaker first"<<endm;return kStFatal;}
     // book hists
-    hJPsiMass = new TH1F("hJPsiMass","e^{+}e^{-} inv mass;M [GeV]",120,2.0,4.0);
-    hJPsiPtY  = new TH2F("hJPsiPtY","J/#psi pT vs y;pT;y",100,0,10,60,-HFCuts::PID::nSigmaE,HFCuts::PID::nSigmaE);
-    hD0Mass   = new TH1F("hD0Mass","K#pi inv mass;M [GeV]",120,1.6,2.1);
-    hD0PtY    = new TH2F("hD0PtY","D^{0} pT vs y;pT;y",100,0,10,60,-HFCuts::PID::nSigmaE,HFCuts::PID::nSigmaE);
-    hNPEPt    = new TH1F("hNPEPt","NPE pT;pT",100,0,10);
-    hEoverPvsP= new TH2F("hEoverPvsP","E/p vs p;p;E/p",100,0,10,100,0,2);
+    hJPsiMass = new TH1F("hJPsiMass","e^{+}e^{-} inv mass;M [GeV]",1000,2.0,4.0);
+    hJPsiPtY  = new TH2F("hJPsiPtY","J/#psi pT vs y;pT;y",1000,0,10,1000,-HFCuts::PID::nSigmaE,HFCuts::PID::nSigmaE);
+    hD0Mass   = new TH1F("hD0Mass","K#pi inv mass;M [GeV]",1000,1.6,2.1);
+    hD0PtY    = new TH2F("hD0PtY","D^{0} pT vs y;pT;y",1000,0,10,1000,-HFCuts::PID::nSigmaE,HFCuts::PID::nSigmaE);
+    hNPEPt    = new TH1F("hNPEPt","NPE pT;pT",1000,0,10);
+    hEoverPvsP= new TH2F("hEoverPvsP","E/p vs p;p;E/p",1000,0,10,1000,0,2);
 
     // additional observables
-    hPhiVsEP_JPsi = new TH2F("hPhiVsEP_JPsi","J/#psi #phi-#Psi_{2} vs p_{T};p_{T};#phi-#Psi_{2}",100,0,10,72,-TMath::Pi(),TMath::Pi());
-    hPhiVsEP_D0   = new TH2F("hPhiVsEP_D0","D^{0} #phi-#Psi_{2} vs p_{T};p_{T};#phi-#Psi_{2}",100,0,10,72,-TMath::Pi(),TMath::Pi());
-    hED0_DeltaPhi = new TH1F("hED0_DeltaPhi","e-D^{0} #Delta#phi;#Delta#phi",72,-TMath::Pi(),TMath::Pi());
-    hEOPInclusive = new TH1F("hEOPInclusive","Inclusive e E/p;E/p",100,0,2);
-    hEffMap_JPsi  = new TH2F("hEffMap_JPsi","J/#psi counts (proxy for eff);p_{T};y",100,0,10,60,-3,3);
-    hEffMap_D0    = new TH2F("hEffMap_D0","D^{0} counts (proxy for eff);p_{T};y",100,0,10,60,-3,3);
+    hPhiVsEP_JPsi = new TH2F("hPhiVsEP_JPsi","J/#psi #phi-#Psi_{2} vs p_{T};p_{T};#phi-#Psi_{2}",1000,0,10,1000,-TMath::Pi(),TMath::Pi());
+    hPhiVsEP_D0   = new TH2F("hPhiVsEP_D0","D^{0} #phi-#Psi_{2} vs p_{T};p_{T};#phi-#Psi_{2}",1000,0,10,1000,-TMath::Pi(),TMath::Pi());
+    hED0_DeltaPhi = new TH1F("hED0_DeltaPhi","e-D^{0} #Delta#phi;#Delta#phi",1000,-TMath::Pi(),TMath::Pi());
+    hEOPInclusive = new TH1F("hEOPInclusive","Inclusive e E/p;E/p",1000,0,2);
+    hEffMap_JPsi  = new TH2F("hEffMap_JPsi","J/#psi counts (proxy for eff);p_{T};y",1000,0,10,1000,-3,3);
+    hEffMap_D0    = new TH2F("hEffMap_D0","D^{0} counts (proxy for eff);p_{T};y",1000,0,10,1000,-3,3);
     // dielectron like/unlike-sign spectra
-    hMee_LSneg  = new TH1F("hMee_LSneg","e^{-}e^{-} mass;M [GeV]",120,0,4);
-    hMee_LSpos  = new TH1F("hMee_LSpos","e^{+}e^{+} mass;M [GeV]",120,0,4);
-    hMee_ULS    = new TH1F("hMee_ULS","e^{+}e^{-} mass;M [GeV]",120,0,4);
-    hMeePt_LSneg= new TH2F("hMeePt_LSneg","e^{-}e^{-} mass vs p_{T};M;p_{T}",120,0,4,100,0,10);
-    hMeePt_LSpos= new TH2F("hMeePt_LSpos","e^{+}e^{+} mass vs p_{T};M;p_{T}",120,0,4,100,0,10);
-    hMeePt_ULS  = new TH2F("hMeePt_ULS","e^{+}e^{-} mass vs p_{T};M;p_{T}",120,0,4,100,0,10);
+    hMee_LSneg  = new TH1F("hMee_LSneg","e^{-}e^{-} mass;M [GeV]",1000,0,4);
+    hMee_LSpos  = new TH1F("hMee_LSpos","e^{+}e^{+} mass;M [GeV]",1000,0,4);
+    hMee_ULS    = new TH1F("hMee_ULS","e^{+}e^{-} mass;M [GeV]",1000,0,4);
+    hMeePt_LSneg= new TH2F("hMeePt_LSneg","e^{-}e^{-} mass vs p_{T};M;p_{T}",1000,0,4,1000,0,10);
+    hMeePt_LSpos= new TH2F("hMeePt_LSpos","e^{+}e^{+} mass vs p_{T};M;p_{T}",1000,0,4,1000,0,10);
+    hMeePt_ULS  = new TH2F("hMeePt_ULS","e^{+}e^{-} mass vs p_{T};M;p_{T}",1000,0,4,1000,0,10);
     // simple Gaussian+poly fits (initialised here; parameters set during Fit())
     fJPsiSig = new TF1("fJPsiSig","gaus",2.9,3.3);
     fJPsiBkg = new TF1("fJPsiBkg","pol2",2.0,4.0);
     fD0Sig   = new TF1("fD0Sig","gaus",1.82,1.92);
     fD0Bkg   = new TF1("fD0Bkg","pol2",1.6,2.1);
-    hRefMultVz    = new TH2F("hRefMultVz","gRefMult vs Vz;Vz (cm);gRefMult",120,-60,60,100,0,1000);
+    hRefMultVz    = new TH2F("hRefMultVz","gRefMult vs Vz;Vz (cm);gRefMult",1000,-60,60,100,0,1000);
     mPsi2 = 0.f;
     mEpFinder = new StEpdEpFinder(10);
     mEpFinder->SetEpdHitFormat(2);
@@ -176,13 +176,23 @@ Int_t StHFAnalysisMaker::Finish(){
     if(mOutFile.empty()){LOG_ERROR<<"Output file name is empty"<<endm; return kStFatal;}
     TFile *f = new TFile(mOutFile.c_str(),"RECREATE","HFAnalysisOutput",9);
     if(!f||f->IsZombie()){LOG_ERROR<<"Cannot create output file "<<mOutFile<<endm; return kStFatal;}
+
+    // Perform fits before writing histograms
+    fitMassPeaks();
+
+    // Let EPD finder write its own correction file (it changes gFile)
+    if(mEpFinder) mEpFinder->Finish();
+
+    // Ensure we are back in our output file directory
+    f->cd();
+
     TH1* hists[] = {hJPsiMass,hD0Mass,hNPEPt,hEOPInclusive,hMee_LSneg,hMee_LSpos,hMee_ULS};
-    for(auto h: hists) if(h) h->Write();
+    for(auto h: hists) if(h) h->Write("",TObject::kOverwrite);
     TH2* h2s[] = {hJPsiPtY,hD0PtY,hEoverPvsP,hPhiVsEP_JPsi,hPhiVsEP_D0,hEffMap_JPsi,hEffMap_D0,hRefMultVz,
                        hMeePt_LSneg,hMeePt_LSpos,hMeePt_ULS};
-    for(auto h:h2s) if(h) h->Write();
-    fitMassPeaks();
-    if(mEpFinder) mEpFinder->Finish();
+    for(auto h:h2s) if(h) h->Write("",TObject::kOverwrite);
+
+    f->Write();
     f->Close();
     return kStOK;
 }
