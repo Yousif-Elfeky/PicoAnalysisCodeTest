@@ -10,7 +10,7 @@ my $libname = 'StHFAnalysisMaker';
 my @src = qw(StRoot/StHFAnalysisMaker/StHFAnalysisMaker.cxx);
 
 # Include paths
-Command 'C++FLAGS', Split(' -I$ENV{STAR}/StRoot -I$ENV{STAR}/StRoot/StPicoEvent -I$ENV{STAR}/StRoot/StPicoDstMaker -I$ROOTSYS/include');
+Command 'C++FLAGS', Split(' -I$ENV{STAR}/StRoot -I$ENV{STAR}/StRoot/StPicoEvent -I$ENV{STAR}/StRoot/StPicoDstMaker -I$ENV{STAR}/StRoot/StEpdUtil -I$ROOTSYS/include');
 
 # Library dependencies (link line handled automatically by root4star)
 Library $libname => @src;
