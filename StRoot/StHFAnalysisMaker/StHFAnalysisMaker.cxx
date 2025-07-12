@@ -253,7 +253,7 @@ Int_t StHFAnalysisMaker::Finish(){
         hD0Mass,hNPEPt,hEOPInclusive};
     TH2* h2s[] = {hJPsiMassVsPt1,hJPsiMassVsPt2,hJPsiMassVsPtULS,
         hD0PtY,hD0MassVsPt1,hD0MassVsPt2,hD0MassVsPtULS,
-        hEoverPvsP,hPhiVsEP_D0,hV2D0, hRefMultVz};
+        hEoverPvsP,hPhiVsEP_D0, hRefMultVz};
     for(auto h:h1s) if(h) h->Write("",TObject::kOverwrite);
     for(auto h:h2s) if(h) h->Write("",TObject::kOverwrite);
     if(hV2JPsi) hV2JPsi->Write();
