@@ -4,6 +4,7 @@
 #include "StMaker.h"
 #include <string>
 #include <vector>
+#include "StEpdEpFinder.h"
 class StPicoDstMaker;
 class StPicoTrack;
 class TH1F; class TH2F;
@@ -61,7 +62,8 @@ private:
     TH2F *hMeePt_LSneg=nullptr,*hMeePt_LSpos=nullptr,*hMeePt_ULS=nullptr;
     // 9) Cached track lists per event to avoid rescanning
     std::vector<const StPicoTrack*> mElectrons, mKplus, mKminus, mPiplus, mPiminus;
-    float mPsi2; ///< cached second-harmonic event-plane angle from EPD = 0.f;
+    float mPsi2{0.f}; ///< cached second-harmonic event-plane angle (EPD)
+    StEpdEpFinder* mEpFinder{nullptr};
 
     // Event QA-level: refMult vs Vz
     TH2F* hRefMultVz   = nullptr;

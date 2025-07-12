@@ -1,5 +1,5 @@
 #include <TSystem>
-#include "StPicoArrays.h"
+
 
 class StMaker;
 class StChain;
@@ -38,7 +38,8 @@ void runPicoHF(const char *list="pico.list",
   {
     chain->Clear();
         // compute event-plane using EPD hits in this event
-    TClonesArray* epdHits = pico->picoDst()->picoArray(StPicoArrays::EpdHit);
+    const int kEpdHit = 8; // index of EpdHit in StPicoArrays
+    TClonesArray* epdHits = pico->picoDst()->picoArray(kEpdHit);
     StEpdEpInfo epInfo = epFinder->Results(epdHits,
                                            pico->picoDst()->event()->primaryVertex(),
                                            0); // EventType bin (0 for now)
