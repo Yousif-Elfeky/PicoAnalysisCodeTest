@@ -2,8 +2,6 @@
 #define STHFANALYSISMAKER_H
 
 #include "StMaker.h"
-#include "CutsConfig.h"
-#include "TVector3.h"
 #include <string>
 #include <vector>
 class StPicoDstMaker;
@@ -24,16 +22,13 @@ public:
 
 private:
     // ===== internal helpers =====
-    struct Particle {
-        Particle(const TVector3& p, double e, int c) : pMom(p), energy(e), charge(c) {}
-        TVector3 pMom;
-        double energy;
-        int charge;
-    };
     bool    passEventCuts();
     bool    goodTrack(const StPicoTrack* t);
 
-
+    void    runJPsi();
+    void    runD0();
+    void    runHFE();
+    void    runDielectronPairs();
 
     // ===== members =====
     StPicoDstMaker* mPicoDstMaker = nullptr;
@@ -57,7 +52,13 @@ private:
     // 8) Acceptance / efficiency maps (raw counts here)
     TH2F* hEffMap_JPsi = nullptr;
     TH2F* hEffMap_D0   = nullptr;
-    // 9) Event-level: refMult vs Vz
+    // Dielectron like/unlike-sign spectra
+    TH1F *hMee_LSneg=nullptr,*hMee_LSpos=nullptr,*hMee_ULS=nullptr;
+    TH2F *hMeePt_LSneg=nullptr,*hMeePt_LSpos=nullptr,*hMeePt_ULS=nullptr;
+    // 9) Cached track lists per event to avoid rescanning
+    std::vector<const StPicoTrack*> mElectrons, mKplus, mKminus, mPiplus, mPiminus;
+
+    // Event QA-level: refMult vs Vz
     TH2F* hRefMultVz   = nullptr;
 
     ClassDef(StHFAnalysisMaker,1)
