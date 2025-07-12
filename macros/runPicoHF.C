@@ -37,7 +37,8 @@ void runPicoHF(const char *list="pico.list",
   {
     chain->Clear();
         // compute event-plane using EPD hits in this event
-    StEpdEpInfo epInfo = epFinder->Results(pico->picoDst()->epdHits(),
+    TClonesArray* epdHits = pico->picoDst()->picoArray(StPicoArrays::EpdHit);
+    StEpdEpInfo epInfo = epFinder->Results(epdHits,
                                            pico->picoDst()->event()->primaryVertex(),
                                            0); // EventType bin (0 for now)
     float psi2 = epInfo.FullPhiWeightedAndShiftedPsi(2);
