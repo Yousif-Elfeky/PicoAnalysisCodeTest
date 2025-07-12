@@ -25,6 +25,7 @@ private:
 
     bool    passEventCuts();
     bool    goodTrack(const StPicoTrack* t);
+    float   trackBeta(const StPicoTrack* trk) const;
 
     void    runJPsi();
     void    runD0();
@@ -37,7 +38,9 @@ private:
     std::string     mOutFile = "hfOut.root";
 
     TH1F* hJPsiMass = nullptr; TH2F* hJPsiPtY = nullptr;
+    TH1F* hJPsiBkgMass = nullptr;  ///< like-sign background
     TH1F* hD0Mass   = nullptr; TH2F* hD0PtY  = nullptr;
+    TH1F* hD0BkgMass = nullptr;    ///< same-charge background
     TH1F* hNPEPt    = nullptr; TH2F* hEoverPvsP = nullptr;
 
     TH2F* hPhiVsEP_JPsi = nullptr;

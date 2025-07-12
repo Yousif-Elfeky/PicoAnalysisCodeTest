@@ -27,6 +27,8 @@ namespace HFCuts {
 
     // -------- PID windows --------
     namespace PID {
+        constexpr float betaDiffPiMax = 0.03; // |1/β - 1/β_expected| cut for pions
+        constexpr float betaDiffKMax  = 0.03; // for kaons
         // TPC nσ
         constexpr float nSigmaE   = 3.0;
         constexpr float nSigmaPi  = 2.0;

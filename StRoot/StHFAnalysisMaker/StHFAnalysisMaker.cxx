@@ -15,9 +15,12 @@
 #include "TVector3.h"
 #include "TVector2.h"
 #include "StPicoEvent/StPicoBEmcPidTraits.h"
+#include "StPicoEvent/StPicoBTofPidTraits.h"
 #include "TLorentzVector.h"
 #include <cmath>
 #include <iostream>
+#include "StPicoEvent/StPicoPhysicalHelix.h"
+#include "StEventUtilities/StEventUtilities.h"
 
 ClassImp(StHFAnalysisMaker)
 
@@ -31,6 +34,9 @@ Int_t StHFAnalysisMaker::Init(){
     hJPsiPtY  = new TH2F("hJPsiPtY","J/#psi pT vs y;pT;y",1000,0,10,1000,-HFCuts::PID::nSigmaE,HFCuts::PID::nSigmaE);
     hD0Mass   = new TH1F("hD0Mass","K#pi inv mass;M [GeV]",1000,1.6,2.1);
     hD0PtY    = new TH2F("hD0PtY","D^{0} pT vs y;pT;y",1000,0,10,1000,-HFCuts::PID::nSigmaE,HFCuts::PID::nSigmaE);
+    // background mass spectra
+    hJPsiBkgMass = new TH1F("hJPsiBkgMass","like-sign e^{±}e^{±} mass;M [GeV]",1000,2.0,4.0);
+    hD0BkgMass   = new TH1F("hD0BkgMass","same-charge K#pi mass;M [GeV]",1000,1.6,2.1);
     hNPEPt    = new TH1F("hNPEPt","NPE pT;pT",1000,0,10);
     hEoverPvsP= new TH2F("hEoverPvsP","E/p vs p;p;E/p",1000,0,10,1000,0,2);
 
@@ -76,6 +82,29 @@ bool StHFAnalysisMaker::goodTrack(const StPicoTrack* t){
     return true;
 }
 
+float StHFAnalysisMaker::trackBeta(const StPicoTrack* trk) const{
+    constexpr float c_light=2.99792458e10; // cm/s
+    int idx=trk->btofPidTraitsIndex();
+    float beta=std::numeric_limits<float>::quiet_NaN();
+    auto picoDst = mPicoDstMaker->picoDst();
+    if(idx>=0){
+        const StPicoBTofPidTraits* tofPid = picoDst->btofPidTraits(idx);
+        if(tofPid){
+            beta = tofPid->btofBeta();
+            if(beta<1e-4){
+                TVector3 vtx3 = picoDst->event()->primaryVertex();
+                StThreeVectorF vtx(vtx3.x(),vtx3.y(),vtx3.z());
+                TVector3 hit3 = tofPid->btofHitPos();
+                StThreeVectorF hit(hit3.x(),hit3.y(),hit3.z());
+                StPicoPhysicalHelix helix = trk->helix(picoDst->event()->bField());
+                float L = tofPathLength(&vtx,&hit,helix.curvature());
+                float tof = tofPid->btof();
+                if(tof>0) beta = L/(tof*(c_light*1e-9));
+            }
+        }
+    }
+    return beta;}
+
 void StHFAnalysisMaker::runJPsi(){
     const size_t nE = mElectrons.size();
     for(size_t ia=0; ia<nE; ++ia){
@@ -83,7 +112,11 @@ void StHFAnalysisMaker::runJPsi(){
         if(e1->pMom().Perp()<HFCuts::Track::ptMin) continue;
         for(size_t ib=ia+1; ib<nE; ++ib){
             const auto* e2 = mElectrons[ib];
-            if(e1->charge()*e2->charge()>=0) continue;
+            bool likeSign = (e1->charge()*e2->charge()>=0);
+            if(likeSign){
+                hJPsiBkgMass->Fill(m);
+                continue;
+            }
             TVector3 p1=e1->pMom(), p2=e2->pMom();
             TVector3 p=p1+p2; double e=std::sqrt(p1.Mag2()+0.000511*0.000511)+std::sqrt(p2.Mag2()+0.000511*0.000511);
             double m=std::sqrt(e*e-p.Mag2()); double pt=p.Perp(); double y=0.5*std::log((e+p.Z())/(e-p.Z()+1e-6));
@@ -91,7 +124,7 @@ void StHFAnalysisMaker::runJPsi(){
             double phi = std::atan2(p.Y(),p.X());
             double dphiEP = TVector2::Phi_mpi_pi(phi - mPsi2);
             hPhiVsEP_JPsi->Fill(pt,dphiEP);
-             hV2JPsi->Fill(pt, std::cos(2*dphiEP));
+            hV2JPsi->Fill(pt, std::cos(2*dphiEP));
         }
     }
 }
@@ -104,7 +137,7 @@ void StHFAnalysisMaker::runD0(){
     struct D0Cand{ float phi; };
     std::vector<D0Cand> d0cands; d0cands.reserve((kPlus.size()+kMinus.size())*(piPlus.size()+piMinus.size()));
 
-    auto build=[&](const std::vector<const StPicoTrack*>& K,const std::vector<const StPicoTrack*>& P){
+    auto buildOpp=[&](const std::vector<const StPicoTrack*>& K,const std::vector<const StPicoTrack*>& P){
         for(const auto* k:K){
             TVector3 pk=k->pMom(); double eK=std::sqrt(pk.Mag2()+mK2);
             for(const auto* p:P){
@@ -121,7 +154,19 @@ void StHFAnalysisMaker::runD0(){
             }
         }
     };
-    build(kPlus,piMinus); build(kMinus,piPlus);
+    auto buildSame=[&](const std::vector<const StPicoTrack*>& K,const std::vector<const StPicoTrack*>& P){
+        for(const auto* k:K){
+            TVector3 pk=k->pMom(); double eK=std::sqrt(pk.Mag2()+mK2);
+            for(const auto* p:P){
+                TVector3 pp=p->pMom(); double ePi=std::sqrt(pp.Mag2()+mPi2);
+                TVector3 q=pk+pp; double e=eK+ePi; double m2=e*e-q.Mag2(); if(m2<=0) continue;
+                double m=std::sqrt(m2); if(m<1.6||m>2.1) continue;
+                hD0BkgMass->Fill(m);
+            }
+        }
+    };
+    buildOpp(kPlus,piMinus); buildOpp(kMinus,piPlus);
+    buildSame(kPlus,piPlus); buildSame(kMinus,piMinus);
     for(const auto &d:d0cands){
         for(const auto* e:mElectrons){
             float dphi=std::fabs(e->pMom().Phi()-d.phi); if(dphi>TMath::Pi()) dphi=2*TMath::Pi()-dphi;
@@ -162,9 +207,16 @@ Int_t StHFAnalysisMaker::Make(){
         const float nSigE = std::fabs(t->nSigmaElectron());
         const float nSigK = std::fabs(t->nSigmaKaon());
         const float nSigPi= std::fabs(t->nSigmaPion());
+        // TOF beta cuts
+        auto betaOk=[&](const StPicoTrack* tr,float mass, float diffMax){
+            float beta = trackBeta(tr);
+            if(!(beta==beta)) return true; // NaN means no TOF, keep
+            float p=tr->pMom().Mag(); float betaExpected = p/std::sqrt(p*p+mass*mass);
+            return std::fabs(1.0/beta - 1.0/betaExpected) < diffMax;
+        };
         if(nSigE < HFCuts::PID::nSigmaE) mElectrons.push_back(t);
-        if(nSigK < HFCuts::PID::nSigmaK) ((t->charge()>0)? mKplus : mKminus).push_back(t);
-        if(nSigPi< HFCuts::PID::nSigmaPi) ((t->charge()>0)? mPiplus: mPiminus).push_back(t);
+        if(nSigK < HFCuts::PID::nSigmaK && betaOk(t,0.493677,HFCuts::PID::betaDiffKMax)) ((t->charge()>0)? mKplus : mKminus).push_back(t);
+        if(nSigPi< HFCuts::PID::nSigmaPi && betaOk(t,0.13957 ,HFCuts::PID::betaDiffPiMax)) ((t->charge()>0)? mPiplus: mPiminus).push_back(t);
     }
     // event-level QA
     auto evt = picoEvt->event();
@@ -185,8 +237,7 @@ Int_t StHFAnalysisMaker::Finish(){
     TFile *f = new TFile(mOutFile.c_str(),"RECREATE","HFAnalysisOutput",9);
     if(!f||f->IsZombie()){LOG_ERROR<<"Cannot create output file "<<mOutFile<<endm; return kStFatal;}
 
-    // Perform fits before writing histograms
-    fitMassPeaks();
+    
 
     // Let EPD finder write its own correction file (it changes gFile)
     if(mEpFinder) mEpFinder->Finish();
@@ -237,8 +288,8 @@ void StHFAnalysisMaker::runDielectronPairs(){
     pairLoop(plus , minus, hMee_ULS   , hMeePt_ULS  , false);
 }
 
-// --- Fit mass histograms for signal & background
-void StHFAnalysisMaker::fitMassPeaks(){
+// --- Fit mass histograms removed as per user request
+void StHFAnalysisMaker::fitMassPeaks(){ /* disabled */ }
     gStyle->SetOptStat(0);
     gStyle->SetOptFit(1111);
     if(hJPsiMass && hJPsiMass->GetEntries()>10){
