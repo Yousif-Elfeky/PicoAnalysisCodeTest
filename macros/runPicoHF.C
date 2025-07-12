@@ -19,9 +19,9 @@ void runPicoHF(const char *list="pico.list",
 
   gSystem->Load("StPicoEvent");
   gSystem->Load("StPicoDstMaker");
-  gSystem->Load("StEpdUtil");  
+  gSystem->Load("StEpdUtil");  // event-plane utilities
 
-  gSystem->Load("StHFAnalysisMaker");
+  gSystem->Load("StHFAnalysisMaker");                                 // your cons-built lib
 
   chain = new StChain("hfChain");
   StPicoDstMaker* pico = new StPicoDstMaker(2,list,"picoDstMaker");
@@ -36,7 +36,11 @@ void runPicoHF(const char *list="pico.list",
   for (int iEvent = 0; iEvent < nEntries; ++iEvent)
   {
     chain->Clear();
-    float psi2 = epFinder->Psi(2);
+        // compute event-plane using EPD hits in this event
+    StEpdEpInfo epInfo = epFinder->Results(pico->picoDst()->epdHits(),
+                                           pico->picoDst()->event()->primaryVertex(),
+                                           0); // EventType bin (0 for now)
+    float psi2 = epInfo.FullPhiWeightedAndShiftedPsi(2);
     hf->SetPsi2(psi2);
     if(iEvent && iEvent%1000 == 0) cout<<"... finished processing "<<iEvent<<" events."<<endl;
 
@@ -49,7 +53,8 @@ void runPicoHF(const char *list="pico.list",
   }
   cout<<"Finished processing "<<nEntries<<" events."<<endl;
 
-  chain->Finish();
+    chain->Finish();
+  epFinder->Finish();
   delete chain;
 
 }

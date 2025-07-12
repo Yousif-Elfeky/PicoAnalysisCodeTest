@@ -61,7 +61,7 @@ private:
     TH2F *hMeePt_LSneg=nullptr,*hMeePt_LSpos=nullptr,*hMeePt_ULS=nullptr;
     // 9) Cached track lists per event to avoid rescanning
     std::vector<const StPicoTrack*> mElectrons, mKplus, mKminus, mPiplus, mPiminus;
-    float mPsi2 = 0.f;
+    float mPsi2; ///< cached second-harmonic event-plane angle from EPD = 0.f;
 
     // Event QA-level: refMult vs Vz
     TH2F* hRefMultVz   = nullptr;
