@@ -205,12 +205,6 @@ void StHFAnalysisMaker::runDielectronPairs(){
                         double dphi = TVector2::Phi_mpi_pi(pr.Phi()-mPsi2);
                         hPhiVsEP_JPsi->Fill(pt,dphi);
                         hV2JPsi->Fill(pt, std::cos(2*dphi));
-                        if(hED0_DeltaPhi){
-                            for(const auto* e:mElectrons){
-                                double dphi_ep = std::fabs(TVector2::Phi_mpi_pi(e->pMom().Phi()-pair.Phi()));
-                                hED0_DeltaPhi->Fill(dphi_ep);
-                            }
-                        }
                     }
                 }
             }
