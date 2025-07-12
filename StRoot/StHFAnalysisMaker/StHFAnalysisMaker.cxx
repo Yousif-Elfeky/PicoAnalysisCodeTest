@@ -8,7 +8,9 @@
 #include "TMath.h"
 #include "TH1F.h"
 #include "TH2F.h"
+#include "TF1.h"
 #include "TVector3.h"
+#include "StPicoEvent/StPicoBEmcPidTraits.h"
 #include "TLorentzVector.h"
 #include <cmath>
 #include <iostream>
@@ -42,6 +44,11 @@ Int_t StHFAnalysisMaker::Init(){
     hMeePt_LSneg= new TH2F("hMeePt_LSneg","e^{-}e^{-} mass vs p_{T};M;p_{T}",120,0,4,100,0,10);
     hMeePt_LSpos= new TH2F("hMeePt_LSpos","e^{+}e^{+} mass vs p_{T};M;p_{T}",120,0,4,100,0,10);
     hMeePt_ULS  = new TH2F("hMeePt_ULS","e^{+}e^{-} mass vs p_{T};M;p_{T}",120,0,4,100,0,10);
+    // simple Gaussian+poly fits (initialised here; parameters set during Fit())
+    fJPsiSig = new TF1("fJPsiSig","gaus",2.9,3.3);
+    fJPsiBkg = new TF1("fJPsiBkg","pol2",2.0,4.0);
+    fD0Sig   = new TF1("fD0Sig","gaus",1.82,1.92);
+    fD0Bkg   = new TF1("fD0Bkg","pol2",1.6,2.1);
     hRefMultVz    = new TH2F("hRefMultVz","gRefMult vs Vz;Vz (cm);gRefMult",120,-60,60,100,0,1000);
     return kStOK;
 }
@@ -109,9 +116,21 @@ void StHFAnalysisMaker::runD0(){
 }
 
 void StHFAnalysisMaker::runHFE(){
+    auto pico = mPicoDstMaker->picoDst();
     for(const auto* t : mElectrons){
         double p = t->pMom().Mag();
-        hEoverPvsP->Fill(p,-1);
+        int idx = t->bemcPidTraitsIndex();
+        if(idx>=0){
+            const StPicoBEmcPidTraits* bemc = pico->bemcPidTraits(idx);
+            if(bemc){
+                float e = bemc->e();
+                if(e>0){
+                    float eop = e/p;
+                    hEoverPvsP->Fill(p,eop);
+                    if(eop>HFCuts::PID::eopMin && eop<HFCuts::PID::eopMax) hNPEPt->Fill(p);
+                }
+            }
+        }
     }
 }
 
@@ -148,6 +167,7 @@ Int_t StHFAnalysisMaker::Finish(){
     TH2* h2s[] = {hJPsiPtY,hD0PtY,hEoverPvsP,hPhiVsEP_JPsi,hPhiVsEP_D0,hEffMap_JPsi,hEffMap_D0,hRefMultVz,
                        hMeePt_LSneg,hMeePt_LSpos,hMeePt_ULS};
     for(auto h:h2s) if(h) h->Write();
+    fitMassPeaks();
     f->Close();
     return kStOK;
 }

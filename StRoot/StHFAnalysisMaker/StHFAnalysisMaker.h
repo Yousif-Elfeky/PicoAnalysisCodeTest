@@ -29,6 +29,7 @@ private:
     void    runD0();
     void    runHFE();
     void    runDielectronPairs();
+    void    fitMassPeaks();
 
     // ===== members =====
     StPicoDstMaker* mPicoDstMaker = nullptr;
@@ -54,6 +55,8 @@ private:
     TH2F* hEffMap_D0   = nullptr;
     // Dielectron like/unlike-sign spectra
     TH1F *hMee_LSneg=nullptr,*hMee_LSpos=nullptr,*hMee_ULS=nullptr;
+    // Fit functions
+    TF1 *fJPsiSig=nullptr,*fJPsiBkg=nullptr,*fD0Sig=nullptr,*fD0Bkg=nullptr;
     TH2F *hMeePt_LSneg=nullptr,*hMeePt_LSpos=nullptr,*hMeePt_ULS=nullptr;
     // 9) Cached track lists per event to avoid rescanning
     std::vector<const StPicoTrack*> mElectrons, mKplus, mKminus, mPiplus, mPiminus;
