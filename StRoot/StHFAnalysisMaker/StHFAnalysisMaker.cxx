@@ -51,6 +51,7 @@ Int_t StHFAnalysisMaker::Init(){
     fD0Sig   = new TF1("fD0Sig","gaus",1.82,1.92);
     fD0Bkg   = new TF1("fD0Bkg","pol2",1.6,2.1);
     hRefMultVz    = new TH2F("hRefMultVz","gRefMult vs Vz;Vz (cm);gRefMult",120,-60,60,100,0,1000);
+    mPsi2 = 0.f;
     mEpFinder = new StEpdEpFinder(10);
     mEpFinder->SetEpdHitFormat(2);
     return kStOK;
