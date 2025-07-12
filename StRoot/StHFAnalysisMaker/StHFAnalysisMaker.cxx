@@ -53,7 +53,7 @@ Int_t StHFAnalysisMaker::Init(){
     // additional observables
     hPhiVsEP_JPsi = new TH2F("hPhiVsEP_JPsi","J/#psi #phi-#Psi_{2} vs p_{T};p_{T};#phi-#Psi_{2}",1000,0,10,1000,-TMath::Pi(),TMath::Pi());
     hPhiVsEP_D0   = new TH2F("hPhiVsEP_D0","D^{0} #phi-#Psi_{2} vs p_{T};p_{T};#phi-#Psi_{2}",1000,0,10,1000,-TMath::Pi(),TMath::Pi());
-    hED0_DeltaPhi = new TH1F("hED0_DeltaPhi","e-D^{0} #Delta#phi;#Delta#phi",1000,-TMath::Pi(),TMath::Pi());
+    // hED0_DeltaPhi = new TH1F("hED0_DeltaPhi","e-D^{0} #Delta#phi;#Delta#phi",1000,-TMath::Pi(),TMath::Pi());
     hEOPInclusive = new TH1F("hEOPInclusive","Inclusive e E/p;E/p",1000,0,2);
     // v2 profiles (unscaled)
     hV2JPsi = new TProfile("hV2JPsi","J/#psi #LTcos2#GT vs p_{T};p_{T};#LTcos2#GT",50,0,10);
@@ -205,7 +205,13 @@ void StHFAnalysisMaker::runDielectronPairs(){
                         double dphi = TVector2::Phi_mpi_pi(pr.Phi()-mPsi2);
                         hPhiVsEP_JPsi->Fill(pt,dphi);
                         hV2JPsi->Fill(pt, std::cos(2*dphi));
-                                        }
+                        if(hED0_DeltaPhi){
+                            for(const auto* e:mElectrons){
+                                double dphi_ep = std::fabs(TVector2::Phi_mpi_pi(e->pMom().Phi()-pair.Phi()));
+                                hED0_DeltaPhi->Fill(dphi_ep);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -276,7 +282,7 @@ Int_t StHFAnalysisMaker::Finish(){
         hD0BkgMass2,
         hNPEPt,
         hEOPInclusive,
-        hED0_DeltaPhi
+        // hED0_DeltaPhi
     };
     TH2* h2s[] = {
         hJPsiMassVsPt1,
