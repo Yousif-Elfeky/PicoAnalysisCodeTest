@@ -20,9 +20,9 @@ StHFAnalysisMaker::~StHFAnalysisMaker(){}
 Int_t StHFAnalysisMaker::Init(){
     if(!mPicoDstMaker){LOG_ERROR<<"HFAnalysis: set PicoDstMaker first"<<endm;return kStFatal;}
     // book hists
-    hJPsiMass = new TH1F("hJPsiMass","e^{+}e^{-} inv mass;M [GeV]",1HFCuts::Track::nHitsFitMin,2,4);
+    hJPsiMass = new TH1F("hJPsiMass","e^{+}e^{-} inv mass;M [GeV]",120,2.0,4.0);
     hJPsiPtY  = new TH2F("hJPsiPtY","J/#psi pT vs y;pT;y",100,0,10,60,-HFCuts::PID::nSigmaE,HFCuts::PID::nSigmaE);
-    hD0Mass   = new TH1F("hD0Mass","K#pi inv mass;M [GeV]",1HFCuts::Track::nHitsFitMin,1.6,2.1);
+    hD0Mass   = new TH1F("hD0Mass","K#pi inv mass;M [GeV]",120,1.6,2.1);
     hD0PtY    = new TH2F("hD0PtY","D^{0} pT vs y;pT;y",100,0,10,60,-HFCuts::PID::nSigmaE,HFCuts::PID::nSigmaE);
     hNPEPt    = new TH1F("hNPEPt","NPE pT;pT",100,0,10);
     hEoverPvsP= new TH2F("hEoverPvsP","E/p vs p;p;E/p",100,0,10,100,0,2);
@@ -39,14 +39,15 @@ Int_t StHFAnalysisMaker::Init(){
 }
 
 bool StHFAnalysisMaker::passEventCuts(){
-    return HFEventCuts::pass(mPicoDstMaker->picoDst()->event());
+    return HFCuts::passEventCuts(mPicoDstMaker->picoDst()->event());
 }
 
 bool StHFAnalysisMaker::goodTrack(const StPicoTrack* t){
     if(!t) return false;
     if(t->nHitsFit()<HFCuts::Track::nHitsFitMin) return false;
     if(t->nHitsFit()/(float)t->nHitsPoss()<HFCuts::Track::nHitsFracMin) return false;
-    if(std::fabs(t->gDCA())>HFCuts::Track::dcaMax) return false;
+    auto vtx = mPicoDstMaker->picoDst()->event()->primaryVertex();
+    if(t->gDCA(TVector3(vtx.x(),vtx.y(),vtx.z())).Mag() > HFCuts::Track::dcaMax) return false;
     return true;
 }
 
@@ -86,7 +87,7 @@ void StHFAnalysisMaker::runD0(){
         if(std::fabs(t->nSigmaKaon())<HFCuts::PID::nSigmaK) (t->charge()>0?kp:kpbar).push_back(t);
         if(std::fabs(t->nSigmaPion())<HFCuts::PID::nSigmaPi) (t->charge()>0?pi:piBar).push_back(t);
     }
-    auto comb=[&](auto& K,auto& P){
+    auto comb=[&](const std::vector<const StPicoTrack*>& K,const std::vector<const StPicoTrack*>& P){
         for(auto k:K){for(auto p:P){ if(k==p) continue; TVector3 pk=k->pMom(), pp=p->pMom(), q=pk+pp;
             double e=std::sqrt(pk.Mag2()+0.493677*0.493677)+std::sqrt(pp.Mag2()+0.13957*0.13957);
             double m=std::sqrt(e*e-q.Mag2()); double pt=q.Perp(); double y=0.5*std::log((e+q.Z())/(e-q.Z()+1e-6));
@@ -110,9 +111,9 @@ void StHFAnalysisMaker::runHFE(){
     auto pico=mPicoDstMaker->picoDst();
     const int nTr=pico->numberOfTracks();
     for(int i=0;i<nTr;++i){auto t=pico->track(i); if(!goodTrack(t)) continue; if(std::fabs(t->nSigmaElectron())>HFCuts::PID::nSigmaE) continue;
-        double p=t->pMom().Mag(); double eop=(t->bemcPtot()>0)? t->bemcE()/t->bemcPtot() : -1; if(eop<0) continue; hEoverPvsP->Fill(p,eop);
-        hEOPInclusive->Fill(eop);
-        if(eop>HFCuts::PID::eopMin && eop<HFCuts::PID::eopMax) hNPEPt->Fill(t->pMom().Perp()); }
+        double p=t->pMom().Mag();
+        // TODO: retrieve BEMC pid traits for E/p. Skip if traits unavailable.
+        hEoverPvsP->Fill(p,-1); }
 }
 
 Int_t StHFAnalysisMaker::Make(){

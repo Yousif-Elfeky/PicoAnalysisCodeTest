@@ -5,7 +5,7 @@
 // Adjust for different energies by editing these constants or
 // generating them from an external config later.
 
-class StPicoEvent;
+#include "StPicoEvent/StPicoEvent.h"
 
 namespace HFCuts {
     // -------- Event cuts (common) --------
@@ -43,7 +43,7 @@ namespace HFCuts {
         if (!evt) return false;
         float vz = evt->primaryVertex().z();
         float vzVpd = evt->vzVpd();
-        return std::fabs(vz) < Event::VzMax && std::fabs(vz - vzVPD) < Event::VzDiffMax;
+        return std::fabs(vz) < Event::VzMax && std::fabs(vz - vzVpd) < Event::VzDiffMax;
     }
 
     // -------- Physics observable useful ranges --------
