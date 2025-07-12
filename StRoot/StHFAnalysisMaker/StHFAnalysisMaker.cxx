@@ -217,15 +217,17 @@ Int_t StHFAnalysisMaker::Make(){
         const float nSigK = std::fabs(t->nSigmaKaon());
         const float nSigPi= std::fabs(t->nSigmaPion());
         // TOF beta cuts
-        auto betaOk=[&](const StPicoTrack* tr,float mass, float diffMax){
-            float beta = trackBeta(tr);
-            if(!(beta==beta)) return true; // NaN means no TOF, keep
+        auto pidOk=[&](const StPicoTrack* tr,float mass,float diffBeta,float diffMsq){
+            float beta=trackBeta(tr);
+            if(!(beta==beta)) return true; // no TOF
             float p=tr->pMom().Mag(); float betaExpected = p/std::sqrt(p*p+mass*mass);
-            return std::fabs(1.0/beta - 1.0/betaExpected) < diffMax;
+            if(std::fabs(1.0/beta - 1.0/betaExpected) >= diffBeta) return false;
+            float m2 = p*p*(1.0/(beta*beta)-1.0);
+            return std::fabs(m2 - mass*mass) < diffMsq;
         };
-        if(nSigE < HFCuts::PID::nSigmaE) mElectrons.push_back(t);
-        if(nSigK < HFCuts::PID::nSigmaK && betaOk(t,0.493677,HFCuts::PID::betaDiffKMax)) ((t->charge()>0)? mKplus : mKminus).push_back(t);
-        if(nSigPi< HFCuts::PID::nSigmaPi && betaOk(t,0.13957 ,HFCuts::PID::betaDiffPiMax)) ((t->charge()>0)? mPiplus: mPiminus).push_back(t);
+        if(nSigE < HFCuts::PID::nSigmaE && pidOk(t,0.000511,HFCuts::PID::betaDiffPiMax,HFCuts::PID::msqDiffE)) mElectrons.push_back(t);
+        if(nSigK < HFCuts::PID::nSigmaK && pidOk(t,0.493677,HFCuts::PID::betaDiffKMax,HFCuts::PID::msqDiffK)) ((t->charge()>0)? mKplus : mKminus).push_back(t);
+        if(nSigPi< HFCuts::PID::nSigmaPi && pidOk(t,0.13957 ,HFCuts::PID::betaDiffPiMax,HFCuts::PID::msqDiffPi)) ((t->charge()>0)? mPiplus: mPiminus).push_back(t);
     }
     // event-level QA
     auto evt = picoEvt->event();
@@ -254,7 +256,8 @@ Int_t StHFAnalysisMaker::Finish(){
     // Ensure we are back in our output file directory
     f->cd();
 
-    TH1* hists[] = {hJPsiMass,hD0Mass,hNPEPt,hEOPInclusive,hMee_LSneg,hMee_LSpos,hMee_ULS};
+    TH1* hists[] = {hJPsiMass,hD0Mass,hNPEPt,hEOPInclusive,hMee_LSneg,hMee_LSpos,hMee_ULS,
+                       hJPsiBkgMass,hD0BkgMass};
     for(auto h: hists) if(h) h->Write("",TObject::kOverwrite);
     TH2* h2s[] = {hJPsiPtY,hD0PtY,hEoverPvsP,hPhiVsEP_JPsi,hPhiVsEP_D0,hEffMap_JPsi,hEffMap_D0,hRefMultVz,
                        hMeePt_LSneg,hMeePt_LSpos,hMeePt_ULS};

@@ -29,6 +29,10 @@ namespace HFCuts {
     namespace PID {
         constexpr float betaDiffPiMax = 0.03; // |1/β - 1/β_expected| cut for pions
         constexpr float betaDiffKMax  = 0.03; // for kaons
+        // mass-squared difference cuts |M^2 - m^2| < ... (GeV^2)
+        constexpr float msqDiffE  = 0.0025;
+        constexpr float msqDiffK  = 0.005;
+        constexpr float msqDiffPi = 0.003;
         // TPC nσ
         constexpr float nSigmaE   = 3.0;
         constexpr float nSigmaPi  = 2.0;
