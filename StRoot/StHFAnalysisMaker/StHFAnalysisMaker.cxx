@@ -19,9 +19,15 @@
 #include "TLorentzVector.h"
 #include <cmath>
 #include <iostream>
-#include "StPicoEvent/StPicoPhysicalHelix.h"
-#include "StEventUtilities/StEventUtilities.h"
-
+#include "StEvent/StDcaGeometry.h"
+#include "StPhysicalHelixD.hh"
+#include "StPicoEvent/StPicoETofPidTraits.h"
+#include "StBTofUtil/tofPathLength.hh"
+#include "StPicoDstMaker/StPicoDstMaker.h"
+#include "StPicoEvent/StPicoDst.h"
+#include "StPicoEvent/StPicoEvent.h"
+#include "StPicoEvent/StPicoTrack.h"
+#include "StPicoEvent/StPicoMtdPidTraits.h"
 ClassImp(StHFAnalysisMaker)
 
 StHFAnalysisMaker::StHFAnalysisMaker(const char* name):StMaker(name) {}
@@ -103,7 +109,8 @@ float StHFAnalysisMaker::trackBeta(const StPicoTrack* trk) const{
             }
         }
     }
-    return beta;}
+    return beta;
+}
 
 void StHFAnalysisMaker::runJPsi(){
     const size_t nE = mElectrons.size();
@@ -286,24 +293,4 @@ void StHFAnalysisMaker::runDielectronPairs(){
     pairLoop(minus, minus, hMee_LSneg , hMeePt_LSneg, true);
     pairLoop(plus , plus , hMee_LSpos , hMeePt_LSpos, true);
     pairLoop(plus , minus, hMee_ULS   , hMeePt_ULS  , false);
-}
-
-// --- Fit mass histograms removed as per user request
-void StHFAnalysisMaker::fitMassPeaks(){ /* disabled */ }
-    gStyle->SetOptStat(0);
-    gStyle->SetOptFit(1111);
-    if(hJPsiMass && hJPsiMass->GetEntries()>10){
-        hJPsiMass->Fit(fJPsiBkg,"0R");
-        hJPsiMass->Fit(fJPsiSig,"0R+","",2.9,3.3);
-        TCanvas *c1 = new TCanvas("cJPsi","J/#psi mass fit",600,500);
-        hJPsiMass->Draw();
-        c1->SaveAs("JPsiFit.png");
-    }
-    if(hD0Mass && hD0Mass->GetEntries()>10){
-        hD0Mass->Fit(fD0Bkg,"0R");
-        hD0Mass->Fit(fD0Sig,"0R+","",1.82,1.92);
-        TCanvas *c2 = new TCanvas("cD0","D0 mass fit",600,500);
-        hD0Mass->Draw();
-        c2->SaveAs("D0Fit.png");
-    }
 }
