@@ -30,6 +30,7 @@ private:
     void    runHFE();
     void    runDielectronPairs();
     void    fitMassPeaks();
+    void    SetPsi2(float psi){ mPsi2 = psi; }
 
     // ===== members =====
     StPicoDstMaker* mPicoDstMaker = nullptr;
@@ -60,6 +61,7 @@ private:
     TH2F *hMeePt_LSneg=nullptr,*hMeePt_LSpos=nullptr,*hMeePt_ULS=nullptr;
     // 9) Cached track lists per event to avoid rescanning
     std::vector<const StPicoTrack*> mElectrons, mKplus, mKminus, mPiplus, mPiminus;
+    float mPsi2 = 0.f;
 
     // Event QA-level: refMult vs Vz
     TH2F* hRefMultVz   = nullptr;

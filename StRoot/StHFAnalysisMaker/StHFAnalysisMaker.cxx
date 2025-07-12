@@ -10,6 +10,7 @@
 #include "TH2F.h"
 #include "TF1.h"
 #include "TVector3.h"
+#include "TVector2.h"
 #include "StPicoEvent/StPicoBEmcPidTraits.h"
 #include "TLorentzVector.h"
 #include <cmath>
@@ -78,8 +79,9 @@ void StHFAnalysisMaker::runJPsi(){
             TVector3 p=p1+p2; double e=std::sqrt(p1.Mag2()+0.000511*0.000511)+std::sqrt(p2.Mag2()+0.000511*0.000511);
             double m=std::sqrt(e*e-p.Mag2()); double pt=p.Perp(); double y=0.5*std::log((e+p.Z())/(e-p.Z()+1e-6));
             hJPsiMass->Fill(m); hJPsiPtY->Fill(pt,y); hEffMap_JPsi->Fill(pt,y);
-            double dphi = std::atan2(p.Y(),p.X()); // proxy phi
-            hPhiVsEP_JPsi->Fill(pt,dphi);
+            double phi = std::atan2(p.Y(),p.X());
+            double dphiEP = TVector2::Phi_mpi_pi(phi - mPsi2);
+            hPhiVsEP_JPsi->Fill(pt,dphiEP);
         }
     }
 }
@@ -102,6 +104,8 @@ void StHFAnalysisMaker::runD0(){
                 double m=std::sqrt(m2); if(m<1.6||m>2.1) continue;
                 float pt=q.Perp(); float y=0.5*std::log((e+q.Z())/(e-q.Z()+1e-6));
                 hD0Mass->Fill(m); hD0PtY->Fill(pt,y); hEffMap_D0->Fill(pt,y);
+                double dphiEP = TVector2::Phi_mpi_pi(q.Phi() - mPsi2);
+                hPhiVsEP_D0->Fill(pt,dphiEP);
                 d0cands.push_back({static_cast<float>(q.Phi())});
             }
         }
@@ -127,6 +131,7 @@ void StHFAnalysisMaker::runHFE(){
                 if(e>0){
                     float eop = e/p;
                     hEoverPvsP->Fill(p,eop);
+                    hEOPInclusive->Fill(eop);
                     if(eop>HFCuts::PID::eopMin && eop<HFCuts::PID::eopMax) hNPEPt->Fill(p);
                 }
             }
