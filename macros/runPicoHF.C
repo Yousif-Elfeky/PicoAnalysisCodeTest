@@ -1,32 +1,51 @@
-// Macro to run the Pico HF analysis
-#include <TSystem.h>
-#include "StChain/StChain.h"
-#include "StPicoDstMaker/StPicoDstMaker.h"
-#include "StHFAnalysisMaker/StHFAnalysisMaker.h"
+#include <TSystem>
 
-void runPicoHF(const char* inList="pico.list",
-               const char* outFile="hfOut.root",
-               int nEvents = 1000000000)
+class StMaker;
+class StChain;
+class StPicoDstMaker;
+
+StChain *chain;
+
+void runPicoHF(const char *list="pico.list",
+               const char *out="hfOut.root",
+               Long64_t    nEv=1e9)
 {
-    gSystem->Load("libPicoHFAnalysis.so");
+gROOT->Macro("loadMuDst.C");
+gSystem->Load("StDbBroker");
+gSystem->Load("St_db_Maker.so");
+gSystem->Load("StEmcUtil");
+gROOT->LoadMacro("$STAR/StRoot/StMuDSTMaker/COMMON/macros/loadSharedLibraries.C");
+loadSharedLibraries();
 
-    StChain* chain = new StChain();
-    StPicoDstMaker* pico = new StPicoDstMaker(0, inList, "picoDst");
+gSystem->Load("StPicoEvent");
+gSystem->Load("StPicoDstMaker");
 
-    StHFAnalysisMaker* hf = new StHFAnalysisMaker("HF");
-    hf->SetOutFile(outFile);
-    hf->SetPicoDstMaker(pico);
+  gSystem->Load("StHFAnalysisMaker");                                 // your cons-built lib
 
-    // Enable physics channels
-    
+  chain = new StChain("hfChain");
+  auto pico = new StPicoDstMaker(0,list,"PicoDst");
+  auto hf   = new StHFAnalysisMaker("HFMaker");
+  hf->SetOutFile(out);
+  hf->SetPicoDstMaker(pico);
 
-    chain->Init();
-    int iEvent = 0;
-    while (chain->Make() == kStOk && iEvent < nEvents) {
-        ++iEvent;
-        if (iEvent % 10000 == 0) {
-            std::cout << "Processed " << iEvent << " events" << std::endl;
-        }
+  chain->Init();
+  int nEntries = picoDstMaker->chain()->GetEntries();
+  cout<<"Processing "<<nEntries<<" events..."<<endl;
+  for (int iEvent = 0; iEvent < nEntries; ++iEvent)
+  {
+    chain->Clear();
+    if(iEvent && iEvent%1000 == 0) cout<<"... finished processing "<<iEvent<<" events."<<endl;
+
+    int iret = chain->Make();
+    if (iret)
+    {
+      cout << "Bad return code!" << iret << endl;
+      break;
     }
-    chain->Finish();
+  }
+  cout<<"Finished processing "<<nEntries<<" events."<<endl;
+
+  chain->Finish();
+  delete chain;
+
 }

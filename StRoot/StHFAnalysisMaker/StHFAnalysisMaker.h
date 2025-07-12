@@ -39,6 +39,8 @@ private:
     TH1F* hD0Mass   = nullptr; TH2F* hD0PtY  = nullptr;
     // HFE
     TH1F* hNPEPt    = nullptr; TH2F* hEoverPvsP = nullptr;
+    // Event QA
+    TH2F* hRefMultVz = nullptr;
 
     // ==== Additional observables ====
     // 3) Azimuthal anisotropy placeholders (phi-EP)

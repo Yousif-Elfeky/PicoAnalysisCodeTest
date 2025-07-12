@@ -26,6 +26,7 @@ Int_t StHFAnalysisMaker::Init(){
     hD0PtY    = new TH2F("hD0PtY","D^{0} pT vs y;pT;y",100,0,10,60,-HFCuts::PID::nSigmaE,HFCuts::PID::nSigmaE);
     hNPEPt    = new TH1F("hNPEPt","NPE pT;pT",100,0,10);
     hEoverPvsP= new TH2F("hEoverPvsP","E/p vs p;p;E/p",100,0,10,100,0,2);
+    hRefMultVz = new TH2F("hRefMultVz","gRefMult vs Vz;Vz (cm);gRefMult",120,-60,60,100,0,1000);
 
     // additional observables
     hPhiVsEP_JPsi = new TH2F("hPhiVsEP_JPsi","J/#psi #phi-#Psi_{2} vs p_{T};p_{T};#phi-#Psi_{2}",100,0,10,72,-TMath::Pi(),TMath::Pi());
@@ -128,8 +129,10 @@ Int_t StHFAnalysisMaker::Make(){
 
 Int_t StHFAnalysisMaker::Finish(){
     TFile* f=TFile::Open(mOutFile.c_str(),"RECREATE"); if(!f||f->IsZombie()){LOG_ERROR<<"Cannot write output"<<endm; return kStFatal;}
-    hJPsiMass->Write(); hJPsiPtY->Write(); hD0Mass->Write(); hD0PtY->Write(); hNPEPt->Write(); hEoverPvsP->Write();
-    hPhiVsEP_JPsi->Write(); hPhiVsEP_D0->Write(); hED0_DeltaPhi->Write(); hEOPInclusive->Write();
-    hEffMap_JPsi->Write(); hEffMap_D0->Write(); hRefMultVz->Write(); f->Close();
+    TH1* hists[] = {hJPsiMass,hD0Mass,hNPEPt,hEOPInclusive};
+    for(auto h: hists) if(h) h->Write();
+    TH2* h2s[] = {hJPsiPtY,hD0PtY,hEoverPvsP,hPhiVsEP_JPsi,hPhiVsEP_D0,hEffMap_JPsi,hEffMap_D0,hRefMultVz};
+    for(auto h:h2s) if(h) h->Write();
+    f->Close();
     return kStOK;
 }
