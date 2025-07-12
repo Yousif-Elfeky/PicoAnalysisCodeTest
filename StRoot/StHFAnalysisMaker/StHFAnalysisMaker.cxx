@@ -101,8 +101,7 @@ void StHFAnalysisMaker::runD0(){
                 hED0_DeltaPhi->Fill(dphi);
             }
         } 
-    
-    
+    }
 }
 
 void StHFAnalysisMaker::runHFE(){
