@@ -14,6 +14,7 @@
 #include "TF1.h"
 #include "TVector3.h"
 #include "TVector2.h"
+#include "TRandom.h"
 #include "StPicoEvent/StPicoBEmcPidTraits.h"
 #include "StPicoEvent/StPicoBTofPidTraits.h"
 #include "TLorentzVector.h"
@@ -113,6 +114,7 @@ float StHFAnalysisMaker::trackBeta(const StPicoTrack* trk) const{
 }
 
 void StHFAnalysisMaker::runJPsi(){
+    const auto *evt = mPicoDstMaker->picoDst()->event();
     const size_t nE = mElectrons.size();
     for(size_t ia=0; ia<nE; ++ia){
         const auto* e1 = mElectrons[ia];
@@ -178,6 +180,7 @@ void StHFAnalysisMaker::runD0(){
                 double m=std::sqrt(m2); if(m<1.6||m>2.1) continue;
                 // background: require TOF on both tracks
                 if(trackBeta(k)==trackBeta(k) && trackBeta(p)==trackBeta(p)){
+                    const auto *evt = mPicoDstMaker->picoDst()->event();
                     if(evt && evt->grefMult()>200 && gRandom->Rndm()>0.2) {/*skip*/}
                     else hD0BkgMass->Fill(m);
                 }
