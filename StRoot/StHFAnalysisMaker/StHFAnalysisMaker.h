@@ -7,7 +7,7 @@
 #include "StEpdUtil/StEpdEpFinder.h"
 class StPicoDstMaker;
 class StPicoTrack;
-class TH1F; class TH2F;
+class TH1F; class TH2F; class TProfile;
 
 class StHFAnalysisMaker : public StMaker {
 public:
@@ -46,6 +46,9 @@ private:
     TH1F* hEOPInclusive = nullptr;
     TH2F* hEffMap_JPsi = nullptr;
     TH2F* hEffMap_D0   = nullptr;
+    // v2 profiles
+    TProfile* hV2JPsi = nullptr;
+    TProfile* hV2D0   = nullptr;
     TH1F *hMee_LSneg=nullptr,*hMee_LSpos=nullptr,*hMee_ULS=nullptr;
     TF1 *fJPsiSig=nullptr,*fJPsiBkg=nullptr,*fD0Sig=nullptr,*fD0Bkg=nullptr;
     TH2F *hMeePt_LSneg=nullptr,*hMeePt_LSpos=nullptr,*hMeePt_ULS=nullptr;

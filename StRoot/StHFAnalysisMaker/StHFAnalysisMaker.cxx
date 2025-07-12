@@ -8,6 +8,8 @@
 #include "TMath.h"
 #include "TH1F.h"
 #include "TH2F.h"
+#include "TProfile.h"
+#include "TCanvas.h"
 #include "TF1.h"
 #include "TVector3.h"
 #include "TVector2.h"
@@ -38,6 +40,9 @@ Int_t StHFAnalysisMaker::Init(){
     hEOPInclusive = new TH1F("hEOPInclusive","Inclusive e E/p;E/p",1000,0,2);
     hEffMap_JPsi  = new TH2F("hEffMap_JPsi","J/#psi counts (proxy for eff);p_{T};y",1000,0,10,1000,-3,3);
     hEffMap_D0    = new TH2F("hEffMap_D0","D^{0} counts (proxy for eff);p_{T};y",1000,0,10,1000,-3,3);
+    // v2 profiles (unscaled)
+    hV2JPsi = new TProfile("hV2JPsi","J/#psi #LTcos2#GT vs p_{T};p_{T};#LTcos2#GT",50,0,10);
+    hV2D0   = new TProfile("hV2D0","D^{0} #LTcos2#GT vs p_{T};p_{T};#LTcos2#GT",50,0,10);
     // dielectron like/unlike-sign spectra
     hMee_LSneg  = new TH1F("hMee_LSneg","e^{-}e^{-} mass;M [GeV]",1000,0,4);
     hMee_LSpos  = new TH1F("hMee_LSpos","e^{+}e^{+} mass;M [GeV]",1000,0,4);
@@ -85,6 +90,7 @@ void StHFAnalysisMaker::runJPsi(){
             double phi = std::atan2(p.Y(),p.X());
             double dphiEP = TVector2::Phi_mpi_pi(phi - mPsi2);
             hPhiVsEP_JPsi->Fill(pt,dphiEP);
+             hV2JPsi->Fill(pt, std::cos(2*dphiEP));
         }
     }
 }
@@ -109,6 +115,7 @@ void StHFAnalysisMaker::runD0(){
                 hD0Mass->Fill(m); hD0PtY->Fill(pt,y); hEffMap_D0->Fill(pt,y);
                 double dphiEP = TVector2::Phi_mpi_pi(q.Phi() - mPsi2);
                 hPhiVsEP_D0->Fill(pt,dphiEP);
+                 hV2D0->Fill(pt, std::cos(2*dphiEP));
                 d0cands.push_back({static_cast<float>(q.Phi())});
             }
         }
@@ -192,6 +199,9 @@ Int_t StHFAnalysisMaker::Finish(){
                        hMeePt_LSneg,hMeePt_LSpos,hMeePt_ULS};
     for(auto h:h2s) if(h) h->Write("",TObject::kOverwrite);
 
+    if(hV2JPsi) hV2JPsi->Write();
+    if(hV2D0)   hV2D0->Write();
+
     f->Write();
     f->Close();
     return kStOK;
@@ -228,12 +238,20 @@ void StHFAnalysisMaker::runDielectronPairs(){
 
 // --- Fit mass histograms for signal & background
 void StHFAnalysisMaker::fitMassPeaks(){
+    gStyle->SetOptStat(0);
+    gStyle->SetOptFit(1111);
     if(hJPsiMass && hJPsiMass->GetEntries()>10){
         hJPsiMass->Fit(fJPsiBkg,"0R");
         hJPsiMass->Fit(fJPsiSig,"0R+","",2.9,3.3);
+        TCanvas *c1 = new TCanvas("cJPsi","J/#psi mass fit",600,500);
+        hJPsiMass->Draw();
+        c1->SaveAs("JPsiFit.png");
     }
     if(hD0Mass && hD0Mass->GetEntries()>10){
         hD0Mass->Fit(fD0Bkg,"0R");
         hD0Mass->Fit(fD0Sig,"0R+","",1.82,1.92);
+        TCanvas *c2 = new TCanvas("cD0","D0 mass fit",600,500);
+        hD0Mass->Draw();
+        c2->SaveAs("D0Fit.png");
     }
 }
